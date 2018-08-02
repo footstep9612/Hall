@@ -25,7 +25,13 @@ class HomeCountryNavModel extends PublicModel {
 
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
-        $this->_getValue($where, $condition, 'country_bn');
+        $this->_getValue($where, $condition, 'group');
+        if(isset($condition['group_id'])){
+            $where['group_id'] = intval($condition['group_id']);
+        }
+        if(isset($condition['country_bn'])){
+            $where['country_bn'] = trim($condition['country_bn']);
+        }
         $this->_getValue($where, $condition, 'lang');
         switch ($condition['show_type']) {
             case 'P':

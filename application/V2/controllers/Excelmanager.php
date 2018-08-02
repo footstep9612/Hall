@@ -311,21 +311,27 @@ class ExcelmanagerController extends PublicController {
                 $failData['reason'] = L('EXCEL_SKU_PURCHASE_UNIT_PRICE_REQUIRED');
             } elseif ($value['purchase_price_cur_bn'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_PURCHASE_PRICE_CURRENCY_REQUIRED');
-            } elseif (!is_numeric($value['gross_weight_kg'])) {
-                $failData['reason'] = L('EXCEL_SKU_GROSS_WEIGHT_REQUIRED');
-            } elseif ($value['package_mode'] == '') {
+            }
+//            elseif (!is_numeric($value['gross_weight_kg'])) {
+//                $failData['reason'] = L('EXCEL_SKU_GROSS_WEIGHT_REQUIRED');
+//            }
+            elseif ($value['package_mode'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_PACKAGE_MODE_REQUIRED');
-            } elseif (!is_numeric($value['package_size'])) {
-                $failData['reason'] = L('EXCEL_SKU_PACKAGE_SIZE_REQUIRED');
-            } elseif ($value['stock_loc'] == '') {
+            }
+//            elseif (!is_numeric($value['package_size'])) {
+//                $failData['reason'] = L('EXCEL_SKU_PACKAGE_SIZE_REQUIRED');
+//            }
+            elseif ($value['stock_loc'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_STOCK_LOCATION_REQUIRED');
             } elseif ($value['goods_source'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_GOODS_SOURCE_REQUIRED');
             } elseif (!is_numeric($value['delivery_days'])) {
                 $failData['reason'] = L('EXCEL_SKU_DELIVERY_DAYS_REQUIRED');
-            } elseif ($value['period_of_validity'] == '') {
-                $failData['reason'] = L('EXCEL_SKU_VALIDITY_PERIOD_REQUIRED');
-            } elseif (!is_numeric($value['supplier_id'])) {
+            }
+//            elseif ($value['period_of_validity'] == '') {
+//                $failData['reason'] = L('EXCEL_SKU_VALIDITY_PERIOD_REQUIRED');
+//            }
+            elseif (!is_numeric($value['supplier_id'])) {
                 $failData['reason'] = L('EXCEL_SKU_SUPPLIER_NAME_REQUIRED');
             } else {
                 $inquiryItemModel->startTrans();

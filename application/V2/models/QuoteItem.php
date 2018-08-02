@@ -233,9 +233,15 @@ class QuoteItemModel extends PublicModel {
         foreach ($data as $key => $value) {
             $row++;
 
+            if ($is_erui == 'N' && $value['id']) {
+
+                $inquiry_id = $this->where(['id' => $value['id'], 'deleted_flag' => 'N'])->getField('inquiry_id');
+                $org_id = (new InquiryModel())->where(['id' => $inquiry_id, 'deleted_flag' => 'N'])->getField('org_id');
+                $is_erui = (new OrgModel())->getIsEruiById($org_id);
+            }
 
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
-            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && $is_erui == 'N')) {
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['package_mode'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || (empty($value['category']) && $is_erui == 'N')) {
                 if ($value['id'] == '') {
                     continue;
                 } else {
@@ -265,18 +271,22 @@ class QuoteItemModel extends PublicModel {
                     }
                     return ['code' => '-104', 'message' => L('QUOTE_PUP_NUMBER')];
                 }
-                if (!is_numeric($value['gross_weight_kg'])) {
-                    if ($i > 0) {
-                        $this->rollback();
-                    }
-                    return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER')];
-                }
-                if (!is_numeric($value['package_size'])) {
-                    if ($i > 0) {
-                        $this->rollback();
-                    }
-                    return ['code' => '-104', 'message' => L('QUOTE_PS_NUMBER')];
-                }
+
+                $value['period_of_validity'] = strtotime($value['period_of_validity']) ? $value['period_of_validity'] : null;
+                $value['package_size'] = is_numeric($value['package_size']) ? $value['package_size'] : null;
+                $value['gross_weight_kg'] = is_numeric($value['gross_weight_kg']) ? $value['gross_weight_kg'] : null;
+//                if (!is_numeric($value['gross_weight_kg'])) {
+//                    if ($i > 0) {
+//                        $this->rollback();
+//                    }
+//                    return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER')];
+//                }
+//                if (!is_numeric($value['package_size'])) {
+//                    if ($i > 0) {
+//                        $this->rollback();
+//                    }
+//                    return ['code' => '-104', 'message' => L('QUOTE_PS_NUMBER')];
+//                }
                 if (!is_numeric($value['delivery_days'])) {
                     if ($i > 0) {
                         $this->rollback();
