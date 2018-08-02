@@ -546,4 +546,26 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         return true;
     }
 
+    /**
+     * @desc 获取报出价格合计
+     *
+     * @param float $calcuFee, $shippingInsuRate, $calcuRate, $extRate
+     * @param string $trade
+     * @return float
+     * @author liujf
+     * @time 2017-08-10
+     */
+    private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate, $trade = 'CIF', $extRate = 1) {
+        $tmpIfFee = round($calcuFee * 1.1 * $shippingInsuRate / 100 / $calcuRate, 8);
+
+        if ($tmpIfFee >= 8 || $tmpIfFee == 0) {
+            $totalQuotePrice = round($calcuFee / $calcuRate, 8);
+        } else {
+            $tmpRate = $trade == 'DAP' || $trade == 'DAT' || $trade == 'DDP' || $trade == '快递' ? $extRate : $calcuRate;
+            $totalQuotePrice = round(($calcuFee + 8) / $tmpRate, 8);
+        }
+
+        return $totalQuotePrice;
+    }
+
 }
