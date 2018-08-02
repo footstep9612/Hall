@@ -98,7 +98,7 @@ class Rfq_FinalQuoteModel extends PublicModel {
                     return false;
                 }
             } else {
-                $flag = $finalQuoteItemModel->where('id=' . $item['id'])->save($finalQuoteItemModel->create([
+                $flag = $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $inquiry_id,
                             'inquiry_item_id' => $item['inquiry_item_id'],
