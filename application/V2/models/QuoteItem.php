@@ -250,14 +250,15 @@ class QuoteItemModel extends PublicModel {
                 }
             } else {
 
-//                if (empty($value['supplier_name'])) {
-//                    $supplierFailList[] = $row;
-//                    continue;
-//                }
-                $supplierId = $suppliersModel
-                        ->where(['name' => $value['supplier_name'],
-                            'deleted_flag' => 'N'])
-                        ->getField('id');
+                if (!empty($value['supplier_name'])) {
+                    $supplierId = $suppliersModel
+                            ->where(['name' => $value['supplier_name'],
+                                'deleted_flag' => 'N'])
+                            ->getField('id');
+                } else {
+                    $supplierId = 0;
+                }
+
                 if (!is_numeric($supplierId)) {
                     // 匹配供应商失败列表
                     $supplierFailList[] = $row;
