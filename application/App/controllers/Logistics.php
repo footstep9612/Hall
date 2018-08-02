@@ -923,7 +923,7 @@ class LogisticsController extends PublicController {
         $destTariffUSD = round($sumUSD * $data['dest_tariff_rate'] / 100, 8);
         $destVaTaxUSD = round($sumUSD * (1 + $data['dest_tariff_rate'] / 100) * $data['dest_va_tax_rate'] / 100, 8);
 
-        $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
+        $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360, 8);
         $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'] / 100;
 
         switch (true) {
@@ -954,7 +954,7 @@ class LogisticsController extends PublicController {
 
         $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
         $shippingInsuUSD = $shippingInsuFee['USD'];
-        $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period'] / 365, 8);
+        $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period'] / 360, 8);
         $totalInsuFeeUSD = round($totalQuotePrice * $data['premium_rate'], 8);
 
         $data['overland_insu'] = $overlandInsuUSD;
