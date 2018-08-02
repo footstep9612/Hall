@@ -279,6 +279,7 @@ class ExchangeRateModel extends PublicModel {
                             ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
                             ->order('created_at DESC')->getfield('rate');
 
+
             if (empty($exchangeRate)) {
                 $exchangeRate = $exchangeRateModel
                                 ->where(['cur_bn2' => $holdCur, 'cur_bn1' => $exchangeCur])

@@ -949,6 +949,7 @@ class LogisticsController extends PublicController {
      * @time 2018-05-29
      */
     public function rejectQuotingToMarketAppovingAction() {
+
         $condition = $this->put_data;
 
         if (!empty($condition['inquiry_id'])) {
@@ -977,7 +978,6 @@ class LogisticsController extends PublicController {
             $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
             $flag = $quote_logi_fee_Model->submit($condition['inquiry_id']);
             $this->rollback($this->inquiryModel, $flag);
-
             $FinalQuoteModel = new Rfq_FinalQuoteModel();
             $res2 = $FinalQuoteModel->submit($condition['inquiry_id']);
             $this->rollback($this->inquiryModel, $res2);
@@ -1292,7 +1292,7 @@ class LogisticsController extends PublicController {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('CNY', $cur);
+            return $this->_getRate($cur, 'CNY');
         }
     }
 
@@ -1308,7 +1308,7 @@ class LogisticsController extends PublicController {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('USD', $cur);
+            return $this->_getRate($cur, 'USD');
         }
     }
 

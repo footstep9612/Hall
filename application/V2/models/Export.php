@@ -524,7 +524,7 @@ class ExportModel extends PublicModel {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('USD', $cur);
+            return $this->_getRate($cur, 'USD');
         }
     }
 
