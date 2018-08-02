@@ -340,6 +340,8 @@ class SupplierInquiryModel extends PublicModel {
      * @author zyg
      */
     public function Inquiryexport($condition) {
+
+
         $country_model = new CountryModel();
         $country_table = $country_model->getTableName(); //国家表
         $market_area_country_model = new MarketAreaCountryModel();
@@ -1454,7 +1456,7 @@ class SupplierInquiryModel extends PublicModel {
 
             return $this->RateUSD[$cur];
         } else {
-            $Rate = $this->_getRate('USD', $cur);
+            $Rate = $this->_getRate($cur, 'USD');
 
             $this->RateUSD[$cur] = $Rate;
             return $Rate;
