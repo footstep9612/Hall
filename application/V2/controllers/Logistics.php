@@ -204,13 +204,13 @@ class LogisticsController extends PublicController {
             $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
 
             if ($quoteLogiFee) {
-                $quoteLogiFee['land_freight_usd'] = round($quoteLogiFee['land_freight'] / $this->_getRateUSD($quoteLogiFee['land_freight_cur']), 8);
-                $quoteLogiFee['port_surcharge_usd'] = round($quoteLogiFee['port_surcharge'] / $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']), 8);
-                $quoteLogiFee['inspection_fee_usd'] = round($quoteLogiFee['inspection_fee'] / $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']), 8);
-                $quoteLogiFee['inter_shipping_usd'] = round($quoteLogiFee['inter_shipping'] / $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']), 8);
+                $quoteLogiFee['land_freight_usd'] = round($quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']), 8);
+                $quoteLogiFee['port_surcharge_usd'] = round($quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']), 8);
+                $quoteLogiFee['inspection_fee_usd'] = round($quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']), 8);
+                $quoteLogiFee['inter_shipping_usd'] = round($quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']), 8);
 
-                $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] / $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
-                $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] / $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
+                $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
+                $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
 
                 $overlandInsuFee = $this->_getOverlandInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['overland_insu_rate']);
                 $quoteLogiFee['overland_insu'] = $overlandInsuFee['CNY'];
@@ -333,7 +333,7 @@ class LogisticsController extends PublicController {
                         $portSurchargeData['created_by'] = $this->user['id'];
                         $portSurchargeData['created_at'] = $this->time;
                         $portSurchargeList[] = $portSurchargeData;
-                        $data['port_surcharge'] += round($portSurchargeItem['price'] * $portSurchargeItem['qty'] / $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
+                        $data['port_surcharge'] += round($portSurchargeItem['price'] * $portSurchargeItem['qty'] * $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
                     }
                     if ($data['trade_terms_bn'] != 'FOB') {
                         if (empty($data['inter_shipping_items'])) {
@@ -359,7 +359,7 @@ class LogisticsController extends PublicController {
                                 $interShippingData['created_by'] = $this->user['id'];
                                 $interShippingData['created_at'] = $this->time;
                                 $interShippingList[] = $interShippingData;
-                                $data['inter_shipping'] += round($interShippingItem['price'] * $interShippingItem['qty'] / $this->_getRateUSD($interShippingItem['cur_bn']), 8);
+                                $data['inter_shipping'] += round($interShippingItem['price'] * $interShippingItem['qty'] * $this->_getRateUSD($interShippingItem['cur_bn']), 8);
                             }
                         }
                     }
@@ -977,6 +977,7 @@ class LogisticsController extends PublicController {
 
             $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
             $flag = $quote_logi_fee_Model->submit($condition['inquiry_id']);
+
             $this->rollback($this->inquiryModel, $flag);
             $FinalQuoteModel = new Rfq_FinalQuoteModel();
             $res2 = $FinalQuoteModel->submit($condition['inquiry_id']);
@@ -1133,15 +1134,15 @@ class LogisticsController extends PublicController {
                 $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'] > 0 ? $condition['dest_va_tax_rate'] : 0;
         }
 
-        $certificationFeeUSD = round($data['certification_fee'] / $this->_getRateUSD($data['certification_fee_cur']), 8);
-        $inspectionFeeUSD = round($data['inspection_fee'] / $this->_getRateUSD($data['inspection_fee_cur']), 8);
-        $landFreightUSD = round($data['land_freight'] / $this->_getRateUSD($data['land_freight_cur']), 8);
+        $certificationFeeUSD = round($data['certification_fee'] * $this->_getRateUSD($data['certification_fee_cur']), 8);
+        $inspectionFeeUSD = round($data['inspection_fee'] * $this->_getRateUSD($data['inspection_fee_cur']), 8);
+        $landFreightUSD = round($data['land_freight'] * $this->_getRateUSD($data['land_freight_cur']), 8);
         $overlandInsuFee = $this->_getOverlandInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
         $overlandInsuUSD = $overlandInsuFee['USD'];
-        $portSurchargeUSD = round($data['port_surcharge'] / $this->_getRateUSD($data['port_surcharge_cur']), 8);
-        $interShippingUSD = round($data['inter_shipping'] / $this->_getRateUSD($data['inter_shipping_cur']), 8);
-        $destDeliveryFeeUSD = round($data['dest_delivery_fee'] / $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
-        $destClearanceFeeUSD = round($data['dest_clearance_fee'] / $this->_getRateUSD($data['dest_clearance_fee_cur']), 8);
+        $portSurchargeUSD = round($data['port_surcharge'] * $this->_getRateUSD($data['port_surcharge_cur']), 8);
+        $interShippingUSD = round($data['inter_shipping'] * $this->_getRateUSD($data['inter_shipping_cur']), 8);
+        $destDeliveryFeeUSD = round($data['dest_delivery_fee'] * $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
+        $destClearanceFeeUSD = round($data['dest_clearance_fee'] * $this->_getRateUSD($data['dest_clearance_fee_cur']), 8);
         $sumUSD = $data['total_exw_price'] + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $inspectionFeeUSD + $interShippingUSD;
         $destTariffUSD = round($sumUSD * $data['dest_tariff_rate'] / 100, 8);
         $destVaTaxUSD = round($sumUSD * (1 + $data['dest_tariff_rate'] / 100) * $data['dest_va_tax_rate'] / 100, 8);
