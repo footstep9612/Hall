@@ -1979,7 +1979,7 @@ class SupplierInquiryModel extends PublicModel {
         if (is_null($suppliers))
             return null;
 
-//['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
+        //['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
         foreach ($suppliers as &$supplier) {
             $supplier['Middle-East'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Middle East');
             $supplier['South-America'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'South America');
@@ -2000,16 +2000,18 @@ class SupplierInquiryModel extends PublicModel {
 
         $where = [
             'i.deleted_flag' => 'N',
-            'i.status' => 'QUOTE_SENT',
-            'i.quote_status' => 'COMPLETED',
-            'fqi.supplier_id' => ['IN', implode(',', $supplierIds)],
+            //'i.status' => 'QUOTE_SENT',
+            //'i.quote_status' => 'COMPLETED',
+            'iq_ch_l.out_node' => 'BIZ_APPROVING',
+            'qi.supplier_id' => ['IN', implode(',', $supplierIds)],
             'mac.market_area_bn' => !empty($area) ? trim($area) : ['IN', $this->areas]
         ];
 
         $inquiry = new InquiryModel();
         $supplier_inquiry = $inquiry->alias('i')
-                ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+                ->join('erui_rfq.quote_item qi ON i.id=qi.inquiry_id')
                 ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+                ->join('erui_rfq.inquiry_check_log iq_ch_l ON i.id=iq_ch_l.inquiry_id')
                 ->where($where)
                 ->count("DISTINCT(i.id)");
         return $supplier_inquiry;
@@ -2021,9 +2023,10 @@ class SupplierInquiryModel extends PublicModel {
 
         $where = [
             'i.deleted_flag' => 'N',
-            'i.status' => 'QUOTE_SENT',
-            'i.quote_status' => 'COMPLETED',
-            'fqi.supplier_id' => ['IN', implode(',', $supplierIds)],
+            //'i.status' => 'QUOTE_SENT',
+            //'i.quote_status' => 'COMPLETED',
+            'iq_ch_l.out_node' => 'BIZ_APPROVING',
+            'qi.supplier_id' => ['IN', implode(',', $supplierIds)],
             'mac.market_area_bn' => !empty($condition['area_bn']) ? trim($condition['area_bn']) : ['IN', $this->areas]
         ];
 
@@ -2034,12 +2037,14 @@ class SupplierInquiryModel extends PublicModel {
 
 
         $supplier_inquiry = $inquiry->alias('i')
-                ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+                ->join('erui_rfq.quote_item qi ON i.id=qi.inquiry_id')
                 ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+                ->join('erui_rfq.inquiry_check_log iq_ch_l ON i.id=iq_ch_l.inquiry_id')
                 ->where($where)
-                ->field('i.id inquiry_id,i.inquiry_no,i.serial_no,i.created_at')
+                ->field('i.id inquiry_id,i.inquiry_no,i.serial_no,i.created_at,iq_ch_l.in_node,iq_ch_l.out_node')
                 ->group('i.id')
                 ->page($currentPage, $pageSize)
+                ->order('iq_ch_l.created_at desc')
                 ->select();
 
         return $supplier_inquiry;
