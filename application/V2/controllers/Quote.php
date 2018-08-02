@@ -280,7 +280,7 @@ class QuoteController extends PublicController {
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
             } else {
-                $finalQuoteItemModel->where('id=' . $item['id'])->save($finalQuoteItemModel->create([
+                $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $request['inquiry_id'],
                             'inquiry_item_id' => $item['inquiry_item_id'],
