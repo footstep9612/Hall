@@ -1007,7 +1007,7 @@ class SupplierInquiryModel extends PublicModel {
 
             return $this->RateUSD[$cur];
         } else {
-            $Rate = $this->_getRate('USD', $cur);
+            $Rate = $this->_getRate($cur, 'USD');
 
             $this->RateUSD[$cur] = $Rate;
             return $Rate;
