@@ -684,8 +684,8 @@ class LogisticsController extends PublicController {
                 'updated_at' => $this->time
             ];
             $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
-
-            if ($res1['code'] == 1 && $res2) {
+            $flag = Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user);
+            if ($res1['code'] == 1 && $res2 !== false && $flag !== false) {
                 $this->inquiryModel->commit();
                 $res = true;
             } else {
@@ -744,8 +744,8 @@ class LogisticsController extends PublicController {
                 'updated_at' => $this->time
             ];
             $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
-
-            if ($res1['code'] == 1 && $res2) {
+            $flag = Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user);
+            if ($res1['code'] == 1 && $res2 !== false && $flag !== false) {
                 $this->inquiryModel->commit();
                 $res = true;
             } else {
@@ -789,8 +789,8 @@ class LogisticsController extends PublicController {
                 'updated_at' => $this->time
             ];
             $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
-
-            if ($res1['code'] == 1 && $res2) {
+            $flag = Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user);
+            if ($res1['code'] == 1 && $res2 !== false && $flag !== false) {
                 $this->inquiryModel->commit();
                 $res = true;
             } else {
@@ -917,8 +917,8 @@ class LogisticsController extends PublicController {
                 'updated_at' => $this->time
             ];
             $res2 = $this->quoteModel->where($where)->save($quoteData);
-
-            if ($res1['code'] == 1 && $res2) {
+            $flag = Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user);
+            if ($res1['code'] == 1 && $res2 !== false && $flag !== false) {
                 if ($condition['current_node'] == 'issue') {
                     if ($logiRes !== false) {
                         $res = true;
@@ -984,6 +984,9 @@ class LogisticsController extends PublicController {
             $this->rollback($this->inquiryModel, $res2);
             $flag = $FinalQuoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
             $this->rollback($this->inquiryModel, $flag);
+            $flag = Rfq_CheckLogModel::addCheckLog($inquiryData['id'], $inquiryData['status'], $this->user);
+            $this->rollback($this->inquiryModel, $flag);
+
             $this->inquiryModel->commit();
             $this->jsonReturn($res);
         } else {

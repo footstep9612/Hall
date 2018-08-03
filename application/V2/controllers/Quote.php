@@ -167,6 +167,7 @@ class QuoteController extends PublicController {
 
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
 
+
         $this->jsonReturn($response);
     }
 
@@ -178,6 +179,7 @@ class QuoteController extends PublicController {
         $request = $this->validateRequests('inquiry_id');
         $inquiryModel = new InquiryModel();
         $now_agent_id = $inquiryModel->where(['id' => $request['inquiry_id']])->getField('logi_agent_id');
+        $this->inquiryModel->startTrans();
         $result = $inquiryModel->updateData([
             'id' => $request['inquiry_id'],
             'now_agent_id' => $now_agent_id,
@@ -186,7 +188,10 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
+        $this->rollback($this->inquiryModel, null, $result);
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'LOGI_QUOTING', $this->user), null, Rfq_CheckLogModel::$mError);
 
+        $this->inquiryModel->commit();
         $this->jsonReturn($result);
     }
 
@@ -199,8 +204,8 @@ class QuoteController extends PublicController {
 
         $inquiryModel = new InquiryModel();
         $check_org_id = $condition['check_org_id']; //$inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
-
-        $inquiryModel->updateData([
+        $this->inquiryModel->startTrans();
+        $response = $inquiryModel->updateData([
             'id' => $request['inquiry_id'],
             'now_agent_id' => $check_org_id,
             'inflow_time' => date('Y-m-d H:i:s', time()),
@@ -209,7 +214,7 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
-
+        $this->rollback($this->inquiryModel, null, $response);
         $this->quoteModel->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
         $finalQuoteModel = new FinalQuoteModel();
@@ -225,7 +230,7 @@ class QuoteController extends PublicController {
         $final = $finalQuoteModel->field('id')->where('inquiry_id=' . $request['inquiry_id'])->find();
 
         if (empty($final)) {
-            $finalQuoteModel->add($finalQuoteModel->create([
+            $flag = $finalQuoteModel->add($finalQuoteModel->create([
                         'inquiry_id' => $request['inquiry_id'],
                         'buyer_id' => $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('buyer_id'),
                         'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
@@ -241,8 +246,9 @@ class QuoteController extends PublicController {
                         'created_by' => $this->user['id'],
                         'created_at' => date('Y-m-d H:i:s')
             ]));
+            $this->rollback($this->inquiryModel, $flag);
         } else {
-            $finalQuoteModel->where('inquiry_id=' . $request['inquiry_id'])->save($finalQuoteModel->create([
+            $flag = $finalQuoteModel->where('inquiry_id=' . $request['inquiry_id'])->save($finalQuoteModel->create([
                         'inquiry_id' => $request['inquiry_id'],
                         'buyer_id' => $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('buyer_id'),
                         'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
@@ -258,6 +264,7 @@ class QuoteController extends PublicController {
                         'created_by' => $this->user['id'],
                         'created_at' => date('Y-m-d H:i:s')
             ]));
+            $this->rollback($this->inquiryModel, $flag);
         }
 
         $quoteItems = $this->quoteItemModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
@@ -267,7 +274,7 @@ class QuoteController extends PublicController {
 
         foreach ($quoteItems as $quote => $item) {
             if (!in_array($item['id'], $finalItems)) {
-                $finalQuoteItemModel->add($finalQuoteItemModel->create([
+                $flag = $finalQuoteItemModel->add($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $request['inquiry_id'],
                             'inquiry_item_id' => $item['inquiry_item_id'],
@@ -279,8 +286,9 @@ class QuoteController extends PublicController {
                             'created_by' => $this->user['id'],
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
+                $this->rollback($this->inquiryModel, $flag);
             } else {
-                $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
+                $flag = $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $request['inquiry_id'],
                             'inquiry_item_id' => $item['inquiry_item_id'],
@@ -292,9 +300,15 @@ class QuoteController extends PublicController {
                             'created_by' => $this->user['id'],
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
+                $this->rollback($this->inquiryModel, $flag);
             }
         }
 
+
+
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_APPROVING', $this->user), null, Rfq_CheckLogModel::$mError);
+
+        $this->inquiryModel->commit();
         $this->jsonReturn([
             'code' => 1,
             'message' => L('QUOTE_SUCCESS')
@@ -321,7 +335,7 @@ class QuoteController extends PublicController {
         } else {
             $status = "BIZ_APPROVING";
         }
-
+        $this->inquiryModel->startTrans();
         $response = $this->inquiryModel->updateData([
             'id' => $request['inquiry_id'],
             'now_agent_id' => $now_agent_id,
@@ -330,7 +344,11 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
+        $this->rollback($this->inquiryModel, null, $response);
 
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], $status, $this->user), null, Rfq_CheckLogModel::$mError);
+
+        $this->inquiryModel->commit();
         $this->jsonReturn($response);
     }
 
@@ -356,7 +374,7 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
-
+        $this->rollback($this->inquiryModel, null, $res1);
         // 记录历史报价
         $list = $this->finalQuoteItemModel
                 ->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')
@@ -367,18 +385,13 @@ class QuoteController extends PublicController {
             $item['created_at'] = date('Y-m-d H:i:s');
         }
         $res2 = $this->historicalSkuQuoteModel->addAll($list);
+        $this->rollback($this->inquiryModel, $res2);
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_CONFIRMING', $this->user), null, Rfq_CheckLogModel::$mError);
 
-        if ($res1 && $res2) {
-            $this->inquiryModel->commit();
-            $this->setCode('1');
-            $this->setMessage(L('SUCCESS'));
-            $this->jsonReturn(true);
-        } else {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $this->inquiryModel->commit();
+        $this->setCode('1');
+        $this->setMessage(L('SUCCESS'));
+        $this->jsonReturn(true);
     }
 
     /**
@@ -438,6 +451,23 @@ class QuoteController extends PublicController {
         $this->jsonReturn(true);
     }
 
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        }
+    }
+
     /**
      * @desc 事业部审核退回事业部报价
      *
@@ -453,7 +483,13 @@ class QuoteController extends PublicController {
             'status' => 'REJECT_QUOTING',
             'updated_by' => $this->user['id']
         ];
+        $this->inquiryModel->startTrans();
         $res = $this->inquiryModel->updateData($data);
+
+        $falg = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'REJECT_QUOTING', $this->user);
+        $this->rollback($this->inquiryModel, $falg, null, Rfq_CheckLogModel::$mError);
+
+        $this->inquiryModel->commit();
         $this->jsonReturn($res);
     }
 
@@ -925,23 +961,6 @@ class QuoteController extends PublicController {
         }
 
         return ['code' => 1, 'message' => L('QUOTE_VALIDATION')];
-    }
-
-    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
-        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
-            $inquiry->rollback();
-            $this->jsonReturn($results);
-        } elseif ($results === false) {
-            $inquiry->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL') . $error);
-            $this->jsonReturn();
-        } elseif ($flag === false) {
-            $inquiry->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL') . $error);
-            $this->jsonReturn();
-        }
     }
 
 }
