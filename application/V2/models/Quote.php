@@ -284,10 +284,48 @@ class QuoteModel extends PublicModel {
      * @param $user 操作用户id
      * @return array
      */
-    public function sendLogisticsHandler($request, $user) {
+     public function sendLogisticsHandler($request, $user) {
 
         $inquiry = new InquiryModel();
-        $inquiry->startTrans();
+        $quoteItemModel = new QuoteItemModel();
+        $this->startTrans();
+        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+        if ($is_erui == 'Y') {
+            $InquiryItemModel = new InquiryItemModel();
+
+            $supplier_count = $quoteItemModel->field('id')
+                    ->where(['inquiry_id' => $request['inquiry_id'],
+                        'deleted_flag' => 'N',
+                        'ISNULL(supplier_id) or supplier_id=0  '
+                    ])
+                    ->count();
+            if ($supplier_count > 0) {
+                $this->rollback();
+                return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
+            }
+            $org_count = $quoteItemModel->field('id')
+                    ->where(['inquiry_id' => $request['inquiry_id'],
+                        'deleted_flag' => 'N',
+                        'ISNULL(supplier_id) or supplier_id=0  '
+                    ])
+                    ->count();
+            if ($org_count > 0) {
+                $this->rollback();
+                return ['code' => '-104', 'message' => '请选择事业部!'];
+            }
+            $material_cat_count = $InquiryItemModel->field('id')
+                    ->where(['inquiry_id' => $request['inquiry_id'],
+                        'deleted_flag' => 'N',
+                        'ISNULL(material_cat_no) or material_cat_no=\'\'  '
+                    ])
+                    ->count();
+            if ($material_cat_count > 0) {
+                $this->rollback();
+                return ['code' => '-104', 'message' => '请选择物料分类!'];
+            }
+        }
+
 
         $org = new OrgModel();
         $orgId = $org->where(['org_node' => ['in', ['lg', 'elg']], 'deleted_flag' => 'N'])->getField('id');
@@ -303,7 +341,6 @@ class QuoteModel extends PublicModel {
             'updated_at' => $time
         ]);
 
-        $this->startTrans();
         $quoteResult = $this->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
 
 
@@ -327,7 +364,6 @@ class QuoteModel extends PublicModel {
                 ]));
 
                 //给物流报价单项形成记录
-                $quoteItemModel = new QuoteItemModel();
                 //$quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
                 $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
 
@@ -375,15 +411,12 @@ class QuoteModel extends PublicModel {
                 }
             }
 
-            $inquiry->commit();
+
             $this->commit();
 
             return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
         } else {
-
-            $inquiry->rollback();
             $this->rollback();
-
             return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
         }
     }
