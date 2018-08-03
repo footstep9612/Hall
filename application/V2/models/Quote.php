@@ -416,10 +416,7 @@ class QuoteModel extends PublicModel {
 
             return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
         } else {
-
-            $inquiry->rollback();
             $this->rollback();
-
             return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
         }
     }
