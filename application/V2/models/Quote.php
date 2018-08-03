@@ -131,11 +131,12 @@ class QuoteModel extends PublicModel {
 
         $quoteItemIds = $quoteItemModel
                 ->where($where)
-                ->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')
+                ->field('id,purchase_unit_price,quote_qty,purchase_price_cur_bn,reason_for_no_quote')
                 ->select();
 
 
         if (!empty($quoteItemIds)) {
+            $exchange_rates = [];
             foreach ($quoteItemIds as $key => $value) {
 
 
@@ -146,20 +147,25 @@ class QuoteModel extends PublicModel {
                         return false;
                     }
 
-                    $exchange_rate = $exchangeRateModel->getRateToUSD($value['purchase_price_cur_bn'], $error);
-
-
-                    if (empty($exchange_rate)) {
-                        $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
-                        return false;
+                    if (!empty($exchange_rates[$value['purchase_price_cur_bn']])) {
+                        $exchange_rate = $exchange_rates[$value['purchase_price_cur_bn']];
                     } else {
-                        $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) * $exchange_rate;
+                        $exchange_rate = $exchangeRateModel->getRateToUSD($value['purchase_price_cur_bn'], $error);
+                        if (empty($exchange_rate)) {
+                            $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
+                            return false;
+                        }
+                        $exchange_rates [$value['purchase_price_cur_bn']] = $exchange_rate;
                     }
-                    //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
-                    $exw_unit_price = sprintf("%.8f", $exw_unit_price);
+
+                    $exw_unit_price = round($value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) * $exchange_rate, 8);
+
+                    $total_exw_price = round($exw_unit_price * $value['quote_qty'], 8);
+
 
                     $flag = $quoteItemModel->where(['id' => $value['id']])->save([
-                        'exw_unit_price' => $exw_unit_price
+                        'exw_unit_price' => $exw_unit_price,
+                        'total_exw_price' => $total_exw_price,
                     ]);
                     if ($flag === false) {
                         $error = '计算报出EXW价格失败!';
@@ -218,13 +224,19 @@ class QuoteModel extends PublicModel {
                 $error = '币种错误!';
                 return false;
             }
-            $exchange_rate = $exchangeRateModel->getRateToUSD($item['purchase_price_cur_bn'], $error);
-            if (empty($exchange_rate)) {
-                $error = $item['purchase_price_cur_bn'] . '兑USD汇率不存在';
-                return false;
+
+            if (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
+                $exchange_rate = $exchange_rates[$item['purchase_price_cur_bn']];
             } else {
-                $totalPurchase[] = round($item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rate, 16);
+                $exchange_rate = $exchangeRateModel->getRateToUSD($item['purchase_price_cur_bn'], $error);
+                if (empty($exchange_rate)) {
+                    $error = $item['purchase_price_cur_bn'] . '兑USD汇率不存在';
+                    return false;
+                }
+                $exchange_rates [$item['purchase_price_cur_bn']] = $exchange_rate;
             }
+
+            $totalPurchase[] = round($item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rate, 16);
         }
 
 
