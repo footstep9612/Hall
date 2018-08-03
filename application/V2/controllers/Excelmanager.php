@@ -331,11 +331,16 @@ class ExcelmanagerController extends PublicController {
 //            elseif ($value['period_of_validity'] == '') {
 //                $failData['reason'] = L('EXCEL_SKU_VALIDITY_PERIOD_REQUIRED');
 //            }
-            elseif (!is_numeric($value['supplier_id'])) {
-                $failData['reason'] = L('EXCEL_SKU_SUPPLIER_NAME_REQUIRED');
-            } else {
+//            elseif (!is_numeric($value['supplier_id'])) {
+//                $failData['reason'] = L('EXCEL_SKU_SUPPLIER_NAME_REQUIRED');
+//            }
+            else {
                 $inquiryItemModel->startTrans();
                 try {
+                    if (!is_numeric($value['supplier_id'])) {
+                        $value['supplier_id'] = 0;
+                    }
+
                     // 新增询单SKU记录
                     $inquiryItemData = [
                         'inquiry_id' => $value['inquiry_id'],
