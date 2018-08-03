@@ -192,8 +192,6 @@ class FinalquoteController extends PublicController {
             $inquirywhere['id'] = $data['inquiry_id'];
             $inquirywhere['status'] = $data['status'];
             $inquirydata = $inquiry->updateStatus($inquirywhere);
-            $this->rollback($finalquote, Rfq_CheckLogModel::addCheckLog($data['inquiry_id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
-
             if ($inquirydata['code'] == 1) {
                 $quotedata = $quote->updateQuoteStatus($data);
                 if ($quotedata['code'] == 1) {
@@ -355,23 +353,6 @@ class FinalquoteController extends PublicController {
             return $exchangeRate['rate'];
         } else {
             return false;
-        }
-    }
-
-    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
-        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
-            $inquiry->rollback();
-            $this->jsonReturn($results);
-        } elseif ($results === false) {
-            $inquiry->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL') . $error);
-            $this->jsonReturn();
-        } elseif ($flag === false) {
-            $inquiry->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL') . $error);
-            $this->jsonReturn();
         }
     }
 

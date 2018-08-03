@@ -246,7 +246,7 @@ class ExcelmanagerController extends PublicController {
         $inquiryItemModel = new InquiryItemModel();
         $quoteItemModel = new QuoteItemModel();
         $quoteitem_model = new Rfq_QuoteItemModel();
-        $suppliersModel = new SuppliersModel();
+
         array_shift($import_data); //去掉第一行数据(excel文件的标题)
         if (empty($import_data)) {
             return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
@@ -337,8 +337,6 @@ class ExcelmanagerController extends PublicController {
             else {
                 $inquiryItemModel->startTrans();
                 try {
-
-
                     if (!is_numeric($value['supplier_id'])) {
                         $value['supplier_id'] = 0;
                     }

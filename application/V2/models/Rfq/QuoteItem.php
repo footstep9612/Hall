@@ -176,7 +176,7 @@ class Rfq_QuoteItemModel extends PublicModel {
             $sku[$k]['brand'] = $v[8]; //品牌
             $sku[$k]['model'] = $v[9]; //型号
             $sku[$k]['remarks'] = $v[10]; //客户需求描述
-            $sku[$k]['supplier_id'] = $suppliersModel->where(['name' => $v[11], 'deleted_flag' => 'N', 'name is not null and name<>\'\''])->getField('id');
+            $sku[$k]['supplier_id'] = $suppliersModel->where(['name' => $v[11], 'deleted_flag' => 'N'])->getField('id');
             $sku[$k]['quote_brand'] = $v[12]; //品牌(报价)
             $sku[$k]['pn'] = $v[13]; //商品供应商PN码
             $sku[$k]['purchase_unit_price'] = strpos($v[14], ',') !== false ? str_replace('，', '', str_replace(',', '', $v[14])) : $v[14]; //采购单价
@@ -223,8 +223,7 @@ class Rfq_QuoteItemModel extends PublicModel {
             $sku[$k]['brand'] = $v[9]; //品牌
             $sku[$k]['model'] = $v[10]; //型号
             $sku[$k]['remarks'] = $v[11]; //客户需求描述
-            $sku[$k]['supplier_id'] = $suppliersModel->where(['name' => $v[12],
-                        'deleted_flag' => 'N', 'name is not null and name<>\'\''])->getField('id');
+            $sku[$k]['supplier_id'] = $suppliersModel->where(['name' => $v[12], 'deleted_flag' => 'N'])->getField('id');
             $sku[$k]['quote_brand'] = $v[13]; //品牌(报价)
             $sku[$k]['pn'] = $v[14]; //商品供应商PN码
             $sku[$k]['purchase_unit_price'] = strpos($v[15], ',') !== false ? str_replace('，', '', str_replace(',', '', $v[15])) : $v[15]; //采购单价

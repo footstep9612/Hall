@@ -157,14 +157,14 @@ class QuoteItemModel extends PublicModel {
 //                if (empty($value['gross_weight_kg'])) {
 //                    return ['code' => '-104', 'message' => '毛重必填'];
 //                }
-//                if (!is_numeric($value['gross_weight_kg'])) {
+//                if (!empty($value['gross_weight_kg']) && !is_numeric($value['gross_weight_kg'])) {
 //                    return ['code' => '-104', 'message' => '毛重必须是数字'];
 //                }
                 //包装体积
 //                if (empty($value['package_size'])) {
 //                    return ['code' => '-104', 'message' => '包装体积必填'];
 //                }
-//                if (!is_numeric($value['package_size'])) {
+//                if (!empty($value['package_size']) && !is_numeric($value['package_size'])) {
 //                    return ['code' => '-104', 'message' => '包装体积必须是数字'];
 //                }
                 //包装方式
@@ -190,11 +190,11 @@ class QuoteItemModel extends PublicModel {
 //                if (empty($value['period_of_validity'])) {
 //                    return ['code' => '-104', 'message' => '报价有效期必填'];
 //                }
-                //报价有效期
-
                 $value['period_of_validity'] = strtotime($value['period_of_validity']) ? $value['period_of_validity'] : null;
                 $value['package_size'] = is_numeric($value['package_size']) ? $value['package_size'] : null;
                 $value['gross_weight_kg'] = is_numeric($value['gross_weight_kg']) ? $value['gross_weight_kg'] : null;
+                //报价有效期
+
 
                 $value['status'] = 'QUOTED';
                 $value['quote_qty'] = $value['qty'];
