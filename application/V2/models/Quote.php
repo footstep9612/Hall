@@ -284,49 +284,22 @@ class QuoteModel extends PublicModel {
      * @param $user 操作用户id
      * @return array
      */
-     public function sendLogisticsHandler($request, $user) {
+
+    /**
+     * 提交物流分单员
+     * @param $request 数据
+     * @param $user 操作用户id
+     * @return array
+     */
+    public function sendLogisticsHandler($request, $user) {
+
 
         $inquiry = new InquiryModel();
+        $quoteLogiFeeModel = new QuoteLogiFeeModel();
         $quoteItemModel = new QuoteItemModel();
+
+        $quoteItemLogiModel = new QuoteItemLogiModel();
         $this->startTrans();
-        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
-        $is_erui = (new OrgModel())->getIsEruiById($org_id);
-        if ($is_erui == 'Y') {
-            $InquiryItemModel = new InquiryItemModel();
-
-            $supplier_count = $quoteItemModel->field('id')
-                    ->where(['inquiry_id' => $request['inquiry_id'],
-                        'deleted_flag' => 'N',
-                        'ISNULL(supplier_id) or supplier_id=0  '
-                    ])
-                    ->count();
-            if ($supplier_count > 0) {
-                $this->rollback();
-                return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
-            }
-            $org_count = $quoteItemModel->field('id')
-                    ->where(['inquiry_id' => $request['inquiry_id'],
-                        'deleted_flag' => 'N',
-                        'ISNULL(supplier_id) or supplier_id=0  '
-                    ])
-                    ->count();
-            if ($org_count > 0) {
-                $this->rollback();
-                return ['code' => '-104', 'message' => '请选择事业部!'];
-            }
-            $material_cat_count = $InquiryItemModel->field('id')
-                    ->where(['inquiry_id' => $request['inquiry_id'],
-                        'deleted_flag' => 'N',
-                        'ISNULL(material_cat_no) or material_cat_no=\'\'  '
-                    ])
-                    ->count();
-            if ($material_cat_count > 0) {
-                $this->rollback();
-                return ['code' => '-104', 'message' => '请选择物料分类!'];
-            }
-        }
-
-
         $org = new OrgModel();
         $orgId = $org->where(['org_node' => ['in', ['lg', 'elg']], 'deleted_flag' => 'N'])->getField('id');
 
@@ -340,84 +313,159 @@ class QuoteModel extends PublicModel {
             'updated_by' => $user['id'],
             'updated_at' => $time
         ]);
+        if ($inquiryResult['code'] != 1) {
+            $this->rollback();
+            return $inquiryResult;
+        }
 
         $quoteResult = $this->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => self::INQUIRY_LOGI_DISPATCHING]);
 
-
+        if ($quoteResult === false) {
+            $this->rollback();
+            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+        }
         if ($inquiryResult && $quoteResult) {
 
             //给物流表创建一条记录
-            $quoteLogiFeeModel = new QuoteLogiFeeModel();
             //防止重复提交
             $hasFlag = $quoteLogiFeeModel->where(['inquiry_id' => $request['inquiry_id']])->find();
-
             if (!$hasFlag) {
-
                 $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
-
-                $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
+                $flag = $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
                             'quote_id' => $quoteInfo['id'],
                             'inquiry_id' => $request['inquiry_id'],
                             'created_at' => date('Y-m-d H:i:s'),
                             'created_by' => $user['id'],
                             'premium_rate' => $quoteInfo['premium_rate']
                 ]));
+                if ($flag === false) {
+                    $this->rollback();
+                    return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+                }
+            }
+            //给物流报价单项形成记录
+            //$quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
+            $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
+            $quoteItemLogiModel = new QuoteItemLogiModel();
+            foreach ($quoteItemIds as $quoteItemId) {
+                if (empty($quoteItemId['reason_for_no_quote'])) {
+                    $flag = $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                                'inquiry_id' => $request['inquiry_id'],
+                                'quote_id' => $quoteInfo['id'],
+                                'quote_item_id' => $quoteItemId['id'],
+                                'created_at' => date('Y-m-d H:i:s'),
+                                'created_by' => $user['id']
+                    ]));
+                    if ($flag === false) {
+                        $this->rollback();
+                        return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+                    }
+                }
+            }
+        } else {
+            $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+            $flag = $quoteLogiFeeModel->save($quoteLogiFeeModel->create([
+                        'quote_id' => $quoteInfo['id'],
+                        'inquiry_id' => $request['inquiry_id'],
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => $user['id'],
+                        'premium_rate' => $quoteInfo['premium_rate']
+            ]));
+            if ($flag === false) {
+                $this->rollback();
+                return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+            }
 
-                //给物流报价单项形成记录
-                //$quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
-                $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
 
-                $quoteItemLogiModel = new QuoteItemLogiModel();
-                foreach ($quoteItemIds as $quoteItemId) {
-                    if (empty($quoteItemId['reason_for_no_quote'])) {
-                        $quoteItemLogiModel->add($quoteItemLogiModel->create([
+            $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
+            $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('quote_item_id', true);
+
+            foreach ($quoteItemIds as $quoteItemId) {
+                if (empty($quoteItemId['reason_for_no_quote'])) {
+                    if (!in_array($quoteItemId['id'], $logiIds)) {
+                        $flag = $quoteItemLogiModel->add($quoteItemLogiModel->create([
                                     'inquiry_id' => $request['inquiry_id'],
                                     'quote_id' => $quoteInfo['id'],
                                     'quote_item_id' => $quoteItemId['id'],
                                     'created_at' => date('Y-m-d H:i:s'),
                                     'created_by' => $user['id']
                         ]));
-                    }
-                }
-            } else {
-                $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
-
-                $quoteLogiFeeModel->save($quoteLogiFeeModel->create([
-                            'quote_id' => $quoteInfo['id'],
-                            'inquiry_id' => $request['inquiry_id'],
-                            'updated_at' => date('Y-m-d H:i:s'),
-                            'updated_by' => $user['id'],
-                            'premium_rate' => $quoteInfo['premium_rate']
-                ]));
-
-                $quoteItemModel = new QuoteItemModel();
-                $quoteItemLogiModel = new QuoteItemLogiModel();
-
-                $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
-                $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('quote_item_id', true);
-
-                foreach ($quoteItemIds as $quoteItemId) {
-                    if (empty($quoteItemId['reason_for_no_quote'])) {
-                        if (!in_array($quoteItemId['id'], $logiIds)) {
-                            $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                                        'inquiry_id' => $request['inquiry_id'],
-                                        'quote_id' => $quoteInfo['id'],
-                                        'quote_item_id' => $quoteItemId['id'],
-                                        'created_at' => date('Y-m-d H:i:s'),
-                                        'created_by' => $user['id']
-                            ]));
+                        if ($flag === false) {
+                            $this->rollback();
+                            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
                         }
                     }
                 }
             }
+        }
+//        $flag = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], self::INQUIRY_LOGI_DISPATCHING, $user);
+//        if ($flag === false) {
+//            $this->rollback();
+//            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+//        }
+        $this->commit();
+        return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
+    }
 
+    public function validate($inquiry_id) {
+        $org_id = (new InquiryModel())->where(['id' => $inquiry_id, 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+        if ($is_erui == 'Y') {
+            $InquiryItemModel = new InquiryItemModel();
+            $quoteItemModel = new QuoteItemModel();
+            $supplier_count = $quoteItemModel
+                    ->where(['inquiry_id' => $inquiry_id,
+                        'deleted_flag' => 'N',
+                        'ISNULL(supplier_id) or supplier_id=0  '
+                    ])
+                    ->count();
+            if ($supplier_count > 0) {
+                return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
+            }
+            $org_count = $quoteItemModel
+                    ->where(['inquiry_id' => $inquiry_id,
+                        'deleted_flag' => 'N',
+                        'ISNULL(supplier_id) or supplier_id=0  '
+                    ])
+                    ->count();
+            if ($org_count > 0) {
 
-            $this->commit();
+                return ['code' => '-104', 'message' => '请选择事业部!'];
+            }
+            $material_cat_count = $InquiryItemModel->field('id')
+                    ->where(['inquiry_id' => $inquiry_id,
+                        'deleted_flag' => 'N',
+                        'ISNULL(material_cat_no) or material_cat_no=\'\'  '
+                    ])
+                    ->count();
+            if ($material_cat_count > 0) {
 
+                return ['code' => '-104', 'message' => '请选择物料分类!'];
+            }
             return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
         } else {
-            $this->rollback();
-            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+            $InquiryItemModel = new InquiryItemModel();
+            $quoteItemModel = new QuoteItemModel();
+            $supplier_count = $quoteItemModel
+                    ->where(['inquiry_id' => $inquiry_id,
+                        'deleted_flag' => 'N',
+                        'ISNULL(supplier_id) or supplier_id=0  '
+                    ])
+                    ->count();
+            if ($supplier_count > 0) {
+                return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
+            }
+            $category_count = $InquiryItemModel->field('id')
+                    ->where(['inquiry_id' => $inquiry_id,
+                        'deleted_flag' => 'N',
+                        'ISNULL(category) or category=\'\'  '
+                    ])
+                    ->count();
+            if ($category_count > 0) {
+
+                return ['code' => '-104', 'message' => '请选择分类!'];
+            }
+            return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
         }
     }
 
