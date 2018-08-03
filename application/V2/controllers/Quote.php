@@ -895,6 +895,13 @@ class QuoteController extends PublicController {
      *
      * @return array
      */
+
+    /**
+     * 验证报价单SKU必填和数字字段
+     * @param array $data
+     *
+     * @return array
+     */
     public function checkSkuFieldsAction($data = []) {
 
         foreach ($data as $key => $value) {
@@ -921,17 +928,17 @@ class QuoteController extends PublicController {
                     return ['code' => '-104', 'message' => L('QUOTE_PPC_REQUIRED')];
                 }
                 //毛重
-                if (empty($value['gross_weight_kg'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_GW_REQUIRED')];
-                }
-                if (!is_numeric($value['gross_weight_kg'])) {
+//                if (empty($value['gross_weight_kg'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_GW_REQUIRED')];
+//                }
+                if (!empty($value['gross_weight_kg']) && !is_numeric($value['gross_weight_kg'])) {
                     return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER')];
                 }
                 //包装体积
-                if (empty($value['package_size'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_PS_REQUIRED')];
-                }
-                if (!is_numeric($value['package_size'])) {
+//                if (empty($value['package_size'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_PS_REQUIRED')];
+//                }
+                if (!empty($value['package_size']) && !is_numeric($value['package_size'])) {
                     return ['code' => '-104', 'message' => L('QUOTE_PS_NUMBER')];
                 }
                 //包装方式
@@ -954,9 +961,9 @@ class QuoteController extends PublicController {
                     return ['code' => '-104', 'message' => L('QUOTE_DD_NUMBER')];
                 }
                 //报价有效期
-                if (empty($value['period_of_validity'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_POF_REQUIRED')];
-                }
+//                if (empty($value['period_of_validity'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_POF_REQUIRED')];
+//                }
             }
         }
 

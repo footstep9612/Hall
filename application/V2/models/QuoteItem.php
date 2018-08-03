@@ -192,6 +192,9 @@ class QuoteItemModel extends PublicModel {
 //                }
                 //报价有效期
 
+                $value['period_of_validity'] = strtotime($value['period_of_validity']) ? $value['period_of_validity'] : null;
+                $value['package_size'] = is_numeric($value['package_size']) ? $value['package_size'] : null;
+                $value['gross_weight_kg'] = is_numeric($value['gross_weight_kg']) ? $value['gross_weight_kg'] : null;
 
                 $value['status'] = 'QUOTED';
                 $value['quote_qty'] = $value['qty'];
