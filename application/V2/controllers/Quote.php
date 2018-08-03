@@ -907,9 +907,9 @@ class QuoteController extends PublicController {
         foreach ($data as $key => $value) {
             if (empty($value['reason_for_no_quote'])) {
                 //供应商活着未报价分析
-                if (empty($value['supplier_id'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
-                }
+//                if (empty($value['supplier_id'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
+//                }
                 //品牌
                 if (empty($value['brand'])) {
                     return ['code' => '-104', 'message' => L('QUOTE_BRAND_REQUIRED')];
