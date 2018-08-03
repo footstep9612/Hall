@@ -47,6 +47,7 @@ class SupplierinquiryController extends PublicController {
             'data' => $suppliersStatics
         ]);
 
+        p($total);
     }
 
     /*
@@ -136,47 +137,24 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryexportAction() {
-        ini_set('memory_limit', '4G');
+        ini_set('memory_limit', '1G');
         set_time_limit(0);
         $condition = $this->getPut();
+        unset($condition['token']);
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
-            $days = intval($condition['last_days']) ?: 31;
-            $condition['created_at_start'] = $this->_getLastDaysDate($days);
-        }
-        $data = $supplier_inquiry_model->Inquiryexport($condition);
-
-        if ($data) {
-            $this->jsonReturn($data);
-        } elseif ($data === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据!');
-            $this->jsonReturn();
+        $inquiryModel = new InquiryModel();
+        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
+        $where = ['i.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+        ];
+        if (!empty($inquiry_ids)) {
+            $where['i.id'] = ['in', $inquiry_ids];
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+            $where['i.id'] = -1;
         }
-    }
 
-    /*     * **********----导出询单列表----****************
-     * |supplier_id|是|string|供应商id|
-     * |current_no |否  |int    |当前页(默认1)|
-     * |pagesize |否	|int	|每页显示条数|
-     */
-
-    public function InquiryToatolexportAction() {
-        ini_set('memory_limit', '4G');
-        set_time_limit(0);
-        $condition = $this->getPut();
-        $supplier_inquiry_model = new SupplierInquiryModel();
-        // 导出多少天以内的数据
-        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
-            $days = intval($condition['last_days']) ?: 31;
-            $condition['created_at_start'] = $this->_getLastDaysDate($days);
-        }
-        $data = $supplier_inquiry_model->InquiryToatolexport($condition);
+        $data = $supplier_inquiry_model->Inquiryexport($where);
 
         if ($data) {
             $this->jsonReturn($data);
