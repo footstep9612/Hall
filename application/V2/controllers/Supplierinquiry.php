@@ -154,6 +154,7 @@ class SupplierinquiryController extends PublicController {
             $where['i.id'] = -1;
         }
 
+
         $data = $supplier_inquiry_model->Inquiryexport($where);
 
         if ($data) {

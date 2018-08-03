@@ -432,6 +432,8 @@ class SupplierInquiryModel extends PublicModel {
                 ->field($field)
                 ->where($where)
                 ->select();
+
+
         $this->_setSupplierName($list);
         $this->_setquoted_time($list);
         $this->_setProductName($list);
@@ -443,6 +445,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setClarifyTime($list);
         $this->_setQuoteSpendTime($list);
         $this->_resetListData($list);
+
         return $this->_createXls($list);
     }
 
@@ -875,9 +878,10 @@ class SupplierInquiryModel extends PublicModel {
         $tmpList = $newList = $serialNoList = [];
         $i = 0;
         $inquiry_ids = [];
-        foreach ($list as &$item) {
-            !empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids) ? $inquiry_ids[] = $item['inquiry_id'] : '';
+        foreach ($list as $item) {
+            !empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids) ? $inquiry_ids[] = $item['inquiry_id'] : null;
         }
+
         if ($inquiry_ids) {
             $category_lists = $inquiryItemModel
                     ->field('COUNT(id) AS count, category,inquiry_id')
@@ -914,27 +918,34 @@ class SupplierInquiryModel extends PublicModel {
 
         foreach ($list as $item) {
             $serialNo = $item['inquiry_id'];
-            $tmpData = $tmpList[$serialNo];
-            $tmpList[$serialNo] = $item;
-            $tmpList[$serialNo]['name_zh'] = $item['project_name'];
-            $tmpList[$serialNo]['name'] = '';
-            $tmpList[$serialNo]['supplier_name'] = '';
-            $tmpList[$serialNo]['model'] = '';
-            $tmpList[$serialNo]['qty'] = '1';
-            $tmpList[$serialNo]['unit'] = '批';
-            $tmpList[$serialNo]['category'] = isset($categorys[$item['inquiry_id']]) ? $categorys[$item['inquiry_id']] : '';
-            $tmpList[$serialNo]['brand'] = '';
-            $tmpList[$serialNo]['purchase_unit_price'] = '';
-            $tmpList[$serialNo]['total'] = '';
-            $tmpList[$serialNo]['quote_unit_price'] = '';
-            $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
-            $tmpList[$serialNo]['total_quote_price'] = '';
-            $tmpList[$serialNo]['total_quoted_price_usd'] = '';
-            $tmpList[$serialNo]['gross_weight_kg'] = '';
-            $tmpList[$serialNo]['total_kg'] += $tmpData['total_kg'];
-            $tmpList[$serialNo]['package_size'] += $tmpData['package_size'];
-            $tmpList[$serialNo]['package_mode'] = '';
+            if (empty($tmpList[$serialNo])) {
+                $tmpList[$serialNo] = $item;
+                $tmpList[$serialNo]['name_zh'] = $item['project_name'];
+                $tmpList[$serialNo]['name'] = '';
+                $tmpList[$serialNo]['supplier_name'] = '';
+                $tmpList[$serialNo]['model'] = '';
+                $tmpList[$serialNo]['qty'] = '1';
+                $tmpList[$serialNo]['unit'] = '批';
+                $tmpList[$serialNo]['category'] = isset($categorys[$item['inquiry_id']]) ? $categorys[$item['inquiry_id']] : '';
+                $tmpList[$serialNo]['brand'] = '';
+                $tmpList[$serialNo]['purchase_unit_price'] = '';
+                $tmpList[$serialNo]['total'] = '';
+                $tmpList[$serialNo]['quote_unit_price'] = '';
+                $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
+                $tmpList[$serialNo]['total_quote_price'] = '';
+                $tmpList[$serialNo]['total_quoted_price_usd'] = '';
+                $tmpList[$serialNo]['gross_weight_kg'] = '';
+                $tmpList[$serialNo]['total_kg'] = $item['total_kg'];
+                $tmpList[$serialNo]['package_size'] = $item['package_size'];
+                $tmpList[$serialNo]['package_mode'] = '';
+            } else {
+
+                $tmpList[$serialNo]['total_kg'] += $item['total_kg'];
+                $tmpList[$serialNo]['package_size'] += $item['package_size'];
+                $tmpList[$serialNo]['package_mode'] = '';
+            }
         }
+
         foreach ($list as $item) {
             $serialNo = $item['inquiry_id'];
             if (!in_array($serialNo, $serialNoList)) {
