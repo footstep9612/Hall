@@ -329,8 +329,9 @@ class QuoteModel extends PublicModel {
             //给物流表创建一条记录
             //防止重复提交
             $hasFlag = $quoteLogiFeeModel->where(['inquiry_id' => $request['inquiry_id']])->find();
+            $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
             if (!$hasFlag) {
-                $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+
                 $flag = $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
                             'quote_id' => $quoteInfo['id'],
                             'inquiry_id' => $request['inquiry_id'],
