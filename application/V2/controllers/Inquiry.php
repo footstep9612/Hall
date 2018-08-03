@@ -336,7 +336,13 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
 
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
+
 
             $this->jsonReturn($res);
         } else {
@@ -416,7 +422,12 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
 
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
 
             $this->jsonReturn($res);
         } else {
@@ -448,7 +459,12 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
 
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
 
             $this->jsonReturn($res);
         } else {
@@ -485,7 +501,7 @@ class InquiryController extends PublicController {
             ];
 
             $res1 = $inquiryModel->updateData($data);
-
+            $this->rollback($inquiryModel, null, $res1);
 // 更改报价单状态
             $quoteData = [
                 'status' => 'BIZ_QUOTING',
@@ -494,28 +510,13 @@ class InquiryController extends PublicController {
             ];
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 
-
+            $this->rollback($inquiryModel, $res2);
 
 // 更改市场报价单状态
             $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
-
-            if ($res1['code'] == 1 && $res2 !== false && $res3['code'] == 1) {
-                $inquiryModel->commit();
-                $res = true;
-            } else {
-                $inquiryModel->rollback();
-                $res = false;
-            }
-
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage(L('SUCCESS'));
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage(L('FAIL'));
-                $this->jsonReturn();
-            }
+            $this->rollback($inquiryModel, null, $res3);
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
         } else {
             $this->setCode('-103');
             $this->setMessage(L('MISSING_PARAMETER'));
@@ -543,18 +544,15 @@ class InquiryController extends PublicController {
                 'status' => 'CLARIFY',
                 'updated_by' => $this->user['id']
             ];
-
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
 
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage(L('SUCCESS'));
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage(L('FAIL'));
-                $this->jsonReturn();
-            }
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
             $this->setMessage(L('MISSING_PARAMETER'));
@@ -887,8 +885,11 @@ class InquiryController extends PublicController {
         if ($data['status'] == 'BIZ_DISPATCHING') {
             $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         }
-
+        $inquiry->startTrans();
         $results = $inquiry->updateStatus($data);
+        $this->rollback($inquiry, null, $results);
+        $this->rollback($inquiry, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+        $inquiry->commit();
         $this->jsonReturn($results);
     }
 
@@ -1828,6 +1829,27 @@ class InquiryController extends PublicController {
         } else {
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 回滚判断
+     */
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
             $this->jsonReturn();
         }
     }
