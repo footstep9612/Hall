@@ -154,19 +154,19 @@ class QuoteItemModel extends PublicModel {
                     return ['code' => '-104', 'message' => '采购币种必选'];
                 }
                 //毛重
-                if (empty($value['gross_weight_kg'])) {
-                    return ['code' => '-104', 'message' => '毛重必填'];
-                }
-                if (!is_numeric($value['gross_weight_kg'])) {
-                    return ['code' => '-104', 'message' => '毛重必须是数字'];
-                }
+//                if (empty($value['gross_weight_kg'])) {
+//                    return ['code' => '-104', 'message' => '毛重必填'];
+//                }
+//                if (!is_numeric($value['gross_weight_kg'])) {
+//                    return ['code' => '-104', 'message' => '毛重必须是数字'];
+//                }
                 //包装体积
-                if (empty($value['package_size'])) {
-                    return ['code' => '-104', 'message' => '包装体积必填'];
-                }
-                if (!is_numeric($value['package_size'])) {
-                    return ['code' => '-104', 'message' => '包装体积必须是数字'];
-                }
+//                if (empty($value['package_size'])) {
+//                    return ['code' => '-104', 'message' => '包装体积必填'];
+//                }
+//                if (!is_numeric($value['package_size'])) {
+//                    return ['code' => '-104', 'message' => '包装体积必须是数字'];
+//                }
                 //包装方式
                 if (empty($value['package_mode'])) {
                     return ['code' => '-104', 'message' => '包装方式必填'];
@@ -187,9 +187,9 @@ class QuoteItemModel extends PublicModel {
                     return ['code' => '-104', 'message' => '交货期必须是数字'];
                 }
                 //报价有效期
-                if (empty($value['period_of_validity'])) {
-                    return ['code' => '-104', 'message' => '报价有效期必填'];
-                }
+//                if (empty($value['period_of_validity'])) {
+//                    return ['code' => '-104', 'message' => '报价有效期必填'];
+//                }
                 //报价有效期
 
 
