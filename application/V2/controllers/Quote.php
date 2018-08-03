@@ -164,7 +164,10 @@ class QuoteController extends PublicController {
     public function sendLogisticsAction() {
 
         $request = $this->validateRequests('inquiry_id');
-
+        $res = $this->quoteModel->validate($request['inquiry_id']);
+        if ($res['code'] != 1) {
+            $this->jsonReturn($res);
+        }
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
 
         $this->jsonReturn($response);
