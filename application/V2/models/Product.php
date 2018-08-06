@@ -258,7 +258,6 @@ class ProductModel extends PublicModel {
         $bizline_id = (isset($input['bizline_id']) && !empty($input['bizline_id'])) ? trim($input['bizline_id']) : null;
 
         $attachs = $input['attachs'];    //附件
-
         $fp = fopen(MYPATH . '/public/file/spuedit.lock', 'r');
         if (flock($fp, LOCK_EX | LOCK_NB)) {
             $spu = ( isset($input['spu']) && !empty($input['spu']) ) ? trim($input['spu']) : $this->createSpu($material_cat_no); //不存在生产spu
@@ -359,7 +358,7 @@ class ProductModel extends PublicModel {
                     }
 //}
                     $data['status'] = $item['status'] ? $item['status'] : self::STATUS_DRAFT;
-                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang))->order('deleted_flag ASC')->find();
+                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'))->find();
                     if ($exist_check) {    //修改
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
