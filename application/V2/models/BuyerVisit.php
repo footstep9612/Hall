@@ -28,6 +28,18 @@ class BuyerVisitModel extends PublicModel {
      * @return array|bool|mixed
      */
     public function getList($data = []){
+//                $data=array(
+//            'created_by'=>37850,
+//            'admin'=>array(
+//                'role'=>array(
+//                    'CRM客户管理1','area-customers1','201711242','A001','A012','A013','查看客户管理所有菜单','A015'
+//                ),
+//                'country'=>array(
+//                    'Russia','Malaysia','Myanmar','Japan','India'
+//                )
+//            ),
+//            'lang'=>'zh'
+//        );
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         $total_flag=isset($data['total_flag'])?$data['total_flag']:false;
@@ -1071,60 +1083,20 @@ class BuyerVisitModel extends PublicModel {
             return false;
         }
         $condition=$access;
-//        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
-//            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
-//                return false;
-//            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
-//                $condition .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
-//            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
-//                $agent=new BuyerAgentModel();
-//                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $created=new BuyerModel();
-//                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $totalList=$this->validAgent($createdArr,$list);
-//                $str='';
-//                foreach($totalList as $k => $v){
-//                    $str.=','.$v['buyer_id'];
-//                }
-//                $str=substr($str,1);
-//                if(!empty($str)){
-//                    $condition.= " and buyer.id in ($str) ";
-//                }else{
-//                    $condition.= " and buyer.id in ('wangs') ";
-//                }
-//            }else{  //即使国家负责人,也是市场经办人
-//                $condition .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
-//                $agent=new BuyerAgentModel();
-//                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $created=new BuyerModel();
-//                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $totalList=$this->validAgent($createdArr,$list);
-//                $str='';
-//                foreach($totalList as $k => $v){
-//                    $str.=','.$v['buyer_id'];
-//                }
-//                $str=substr($str,1);
-//                if(!empty($str)){
-//                    $condition.= " or buyer.id in ($str) )";
-//                }else{
-//                    $condition.= " or buyer.id in ('wangs') )";
-//                }
-//            }
-//        }else{
-//            $condition=" 1=1 ";
+//        if(!empty($data['visit_level'])){  //拜访级别
+//            $condition.=" and visit_level like '%\"".$data['visit_level']."\"%'";
 //        }
-//        print_r($condition);die;
-        if(!empty($data['visit_level'])){  //拜访级别
-            $condition.=" and visit_level like '%\"".$data['visit_level']."\"%'";
-        }
-        if(!empty($data['visit_position'])){  //拜访职位
-            $condition.=" and visit_position like '%\"".$data['visit_position']."\"%'";
-        }
+//        if(!empty($data['visit_position'])){  //拜访职位
+//            $condition.=" and visit_position like '%\"".$data['visit_position']."\"%'";
+//        }
         if(!empty($data['buyer_name'])){  //客户名称
             $condition.=" and buyer.name like '%$data[buyer_name]%'";
         }
         if(!empty($data['buyer_code'])){  //CRM客户代码
             $condition.=" and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['buyer_no'])){  //CRM客户代码
+            $condition.=" and buyer.buyer_no like '%$data[buyer_no]%'";
         }
         if(!empty($data['country_search'])){  //国家搜索
             $condition.=" and buyer.country_bn='$data[country_search]'";
