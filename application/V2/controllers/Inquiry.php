@@ -606,7 +606,7 @@ class InquiryController extends PublicController {
         $employee->setUserName($results['data'], [
             'agent_name' => 'agent_id',
             'quote_name' => 'quote_id',
-            'now_agent_name' => 'now_agent_id',
+            'current_name' => 'now_agent_id',
             'created_name' => 'created_by',
             'logi_agent_name' => 'logi_agent_id',
             'check_org_name' => 'check_org_id',
