@@ -71,8 +71,9 @@ class EsGoodsModel extends Model {
             }
         }
 
+        //sku&&name合并搜索
         if (!empty($condition['name'])) {
-            if(preg_match("/^\d*$/",$condition['name'])) {
+            if(preg_match("/^\d*$/",$condition['name']) && mb_strlen($condition['name']) == 16) {
                 $condition['sku'] = $condition['name'];
                 unset($condition['name']);
             }else {
