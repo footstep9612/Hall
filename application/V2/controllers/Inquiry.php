@@ -380,17 +380,24 @@ class InquiryController extends PublicController {
 
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
+
             $op_note = !empty($condition['op_note']) ? $condition['op_note'] : '';
             $in_node = !empty($condition['in_node']) ? $condition['in_node'] : null;
-            $agentId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
-
+            $inquiry = $inquiryModel->where(['id' => $condition['inquiry_id']])->field('agent_id,status')->find();
+            if (empty($inquiry)) {
+                jsonReturn('', '-101', L('INQUIRY_NO_DATA'));
+            }
+            $agentId = !empty($inquiry['agent_id']) ? $inquiry['agent_id'] : null;
+            if (!empty($inquiry['status']) && $inquiry['status'] === 'CLARIFY') {
+                jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
+            }
             $data = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $agentId,
                 'status' => 'CLARIFY',
                 'updated_by' => $this->user['id']
             ];
-
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
             $this->rollback($inquiryModel, null, $res);
             $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($condition['inquiry_id'], 'CLARIFY', $this->user, $in_node, 'CLARIFY', $op_note), null, Rfq_CheckLogModel::$mError);
