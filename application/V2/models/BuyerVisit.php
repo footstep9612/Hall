@@ -848,9 +848,9 @@ class BuyerVisitModel extends PublicModel {
             }
         }else{
             if($lang=='zh'){
-                $tableheader = array('序号','地区','国家','客户代码（CRM）','拜访时间','中方参会人员','客户参会人员','拜访目的','拜访职位','客户联系人','联系方式','客户需求','商品描述','客户痛点','拜访结果');
+                $tableheader = array('序号','创建人','地区','国家','客户代码（CRM）','拜访时间','中方参会人员','客户参会人员','拜访目的','拜访职位','客户联系人','联系方式','客户需求','商品描述','客户痛点','拜访结果');
             }else{
-                $tableheader = array('Serial','Area','Country','Customer code','Visit time','Chinese participants','Customer participants','The purpose of visiting','Visit a position','customer contact','mobile','customer demand','Commodity Description','Customer pain point','Visit the result');
+                $tableheader = array('Serial','creater','Area','Country','Customer code','Visit time','Chinese participants','Customer participants','The purpose of visiting','Visit a position','customer contact','mobile','customer demand','Commodity Description','Customer pain point','Visit the result');
             }
         }
         $excel->getActiveSheet()->getStyle('H')->getAlignment()->setWrapText(true);
@@ -897,6 +897,7 @@ class BuyerVisitModel extends PublicModel {
         $arr=array();
         foreach($data as $k => $v){
             $arr[$k]['visit_id'] = $v['visit_id'];    //序号
+            $arr[$k]['created_name'] = $v['created_name'];    //创建人
             $arr[$k]['region_name'] = $v['region_name'];    //地区
             $arr[$k]['country_name'] = $v['country_name'];    //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
