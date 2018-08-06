@@ -70,6 +70,16 @@ class EsGoodsModel extends Model {
                 $condition['spus'] = ['null'];
             }
         }
+
+        if (!empty($condition['name'])) {
+            if(preg_match("/^\d*$/",$condition['name'])) {
+                $condition['sku'] = $condition['name'];
+                unset($condition['name']);
+            }else {
+                $condition['name'] = $condition['name'];
+            }
+        }
+
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         ESClient::getQurey($condition, $body, ESClient::TERM, 'sku');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'spu');
