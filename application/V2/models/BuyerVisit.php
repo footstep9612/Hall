@@ -1107,6 +1107,15 @@ class BuyerVisitModel extends PublicModel {
 //        if(!empty($data['visit_position'])){  //拜访职位
 //            $condition.=" and visit_position like '%\"".$data['visit_position']."\"%'";
 //        }
+
+
+        if (!empty($data['all_id'])) {
+            $condition.=" and visit.id in ($data[all_id])";
+        }
+        foreach($data as $k => $v){
+            $data[$k]=trim($v);
+        }
+
         if(!empty($data['buyer_name'])){  //客户名称
             $condition.=" and buyer.name like '%$data[buyer_name]%'";
         }
@@ -1182,9 +1191,7 @@ class BuyerVisitModel extends PublicModel {
             $condition.=" and visit.created_at<='$data[visit_end_time] 23:59:59'";
         }
         //按拜访记录id为条件
-        if (!empty($data['all_id'])) {
-            $condition.=" and visit.id in ($data[all_id])";
-        }
+
         if (!empty($data['buyer_id'])) {
             $condition.=" and visit.buyer_id=$data[buyer_id] ";
         }
