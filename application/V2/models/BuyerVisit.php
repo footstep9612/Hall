@@ -53,17 +53,20 @@ class BuyerVisitModel extends PublicModel {
         }
         $length = 10;
         $offset = ($current_no-1)*$length;
+        $total=$this->getTotalVisit($condition,$lang);
 //        $total = $this->field('id')->where($condition)->count();
-        $total_sql='select count(*) as total';
-        $total_sql.=' from erui_buyer.buyer_visit visit ';
-        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
-        $total_sql.=' inner join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
-        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
-        $total_sql.=' where ';
-        $total_sql.=$condition;
-        $total=$this->query($total_sql);
+//        $total_sql='select count(*) as total';
+//        $total_sql.=' from erui_buyer.buyer_visit visit ';
+//        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+//        $total_sql.=' inner join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+//        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+//        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+//        $total_sql.=' where ';
+//        $total_sql.=$condition;
+//        $total=$this->query($total_sql);
         $total=$total[0]['total'];
+//        print_r($total);die;
+//        echo $this->getLastSql();die;
         if($total_flag===true){
             $arr=array('total'=>$total);
             return $arr;
@@ -87,6 +90,19 @@ class BuyerVisitModel extends PublicModel {
         }
 
         return $arr;
+    }
+    public function getTotalVisit($condition,$lang){
+        $sql='select count(*) as total';
+
+        $sql.=' from erui_buyer.buyer_visit visit ';
+        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+        $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
+        $sql.=' where '; //employee
+        $sql.=$condition ; //employee
+        $total=$this->query($sql);
+        return $total;
     }
     //获取客户需求反馈的条件
     public function getDemadCond($data){
