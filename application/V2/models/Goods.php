@@ -627,7 +627,7 @@ class GoodsModel extends PublicModel {
                         $this->rollback();
                         flock($fp, LOCK_UN);
                         fclose($fp);
-                        jsonReturn('', ErrorMsg::FAILED, '请输入扩展属性');
+                        jsonReturn('', ErrorMsg::FAILED, '请输入非固定属性');
                     }
 
                     $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
