@@ -54,6 +54,7 @@ class BuyerVisitModel extends PublicModel {
         $length = 10;
         $offset = ($current_no-1)*$length;
         $total=$this->getTotalVisit($condition,$lang);
+
 //        $total = $this->field('id')->where($condition)->count();
 //        $total_sql='select count(*) as total';
 //        $total_sql.=' from erui_buyer.buyer_visit visit ';
@@ -84,7 +85,7 @@ class BuyerVisitModel extends PublicModel {
             $arr = [
                 'current_no' => $current_no,
                 'pagesize' => $length,
-                'total' => $total,
+                'total' => intval($total),
                 'result' => $result
             ];
         }
@@ -95,12 +96,9 @@ class BuyerVisitModel extends PublicModel {
         $sql='select count(*) as total';
 
         $sql.=' from erui_buyer.buyer_visit visit ';
-        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
-        $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
-        $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
-        $sql.=' where '; //employee
-        $sql.=$condition ; //employee
+        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id';
+        $sql.=' where ';
+        $sql.=$condition ;
         $total=$this->query($sql);
         return $total;
     }
@@ -996,6 +994,8 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' order by visit.created_at desc ';
         $sql.=' limit '.$offset.','.$pageSize;
         $result=$this->query($sql);
+//        echo $this->getLastSql();die;
+//        print_r($result);die;
         $visit_product=new VisitProductModel();
         foreach($result as $index => $r) {
             $product = $visit_product->getProductName($r['visit_id'], $lang);  //品类信息
@@ -1119,17 +1119,54 @@ class BuyerVisitModel extends PublicModel {
         }
 
         if(!empty($data['created_name'])){  //拜访记录创建人姓名
-            $condition.=" and employee.name like '%$data[created_name]%'";
+            $em=$this->table('erui_sys.employee')->field('id')
+                ->where(" deleted_flag='N' and name like '%$data[created_name]%'")
+                ->select();
+            $emStr='';
+            if(!empty($em)){
+                foreach($em as $k => $v){
+                    $emStr.=','.$v['id'];
+                }
+                $emStr=mb_substr($emStr,1);
+                $condition.=" and visit.created_by in ($emStr)";
+            }else{
+                $condition.=" and visit.created_by in ('crm')";
+            }
+//            $condition.=" and employee.name like '%$data[created_name]%'";
         }
 
         if(!empty($data['reply'])){  //是否需求反馈提状态
-            if($data['reply']=='Y'){
-                $condition.=" and reply.created_at>='1970-01-01 00:00:00'";
+            $re=$this->table('erui_buyer.buyer_visit_reply')->field('visit_id')
+                ->select();
+            $reStr='';
+            if(!empty($re)){
+                foreach($re as $k => $v){
+                    $reStr.=','.$v['visit_id'];
+                }
+                $reStr=mb_substr($reStr,1);
             }
-            if($data['reply']=='N'){
-                $condition.=" and reply.created_at is null";
+            if(empty($reStr)){
+                if($data['reply']=='Y'){
+                    $condition.=" and visit.id in ('crm')";
+                }
+            }else{
+                if($data['reply']=='Y'){
+                    $condition.=" and visit.id in ($reStr)";
+                }
+                if($data['reply']=='N'){
+                    $condition.=" and visit.id not in ($reStr)";
+                }
             }
+
+//            if($data['reply']=='Y'){
+//
+//                $condition.=" and reply.created_at>='1970-01-01 00:00:00'";
+//            }
+//            if($data['reply']=='N'){
+//                $condition.=" and reply.created_at is null";
+//            }
         }
+//        print_r($condition);die;
         if(!empty($data['visit_at_start'])){  //拜访时间strart
             $condition.=" and visit.visit_at>='$data[visit_at_start]'";
         }
