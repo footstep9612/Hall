@@ -785,8 +785,9 @@ class SupplierInquiryModel extends PublicModel {
         }
 
         $nodes = $inquiryCheckLogModel->field('inquiry_id,in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')
-                        ->where(['inquiry_id' => ['in', !empty($inquiry_ids) ? $inquiry_ids : ['-1']],
-                            'in_node' => ['in', $quoteNode]])->select();
+                ->where(['inquiry_id' => ['in', !empty($inquiry_ids) ? $inquiry_ids : ['-1']],
+                    'in_node' => ['in', $quoteNode]])
+                ->select();
         $spendList = [];
         foreach ($nodes as $nodedata) {
             $spendList[$nodedata['inquiry_id']][] = $nodedata;

@@ -314,7 +314,10 @@ class EsProductModel extends Model {
 
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $name, 'boost' => 99, 'minimum_should_match' => '75%', 'operator' => 'or']]],
+                        [ESClient::TERM => ['spu' => $name]],
+            ]]];
         }
         if (isset($condition['attrs']) && $condition['attrs']) {
             $attrs = trim($condition['attrs']);
