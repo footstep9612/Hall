@@ -194,7 +194,7 @@ class EsproductController extends PublicController {
         }
 
         if (!empty($condition['name'])) {
-            if(preg_match("/^\d*$/",$condition['name'])) {
+            if(preg_match("/^\d*$/",$condition['name']) && mb_strlen($condition['name']) == 16) {
                 $condition['spu'] = $condition['name'];
                 unset($condition['name']);
             }else {
