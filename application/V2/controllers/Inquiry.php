@@ -610,7 +610,7 @@ class InquiryController extends PublicController {
             'created_name' => 'created_by',
             'logi_agent_name' => 'logi_agent_id',
             'check_org_name' => 'check_org_id',
-            'logi_agent_name' => 'logi_agent_id',
+          
             'logi_check_name' => 'logi_check_id',
             'obtain_name' => 'obtain_id']);
 
@@ -1215,7 +1215,6 @@ class InquiryController extends PublicController {
                         case 'LOGI_DISPATCHING'://物流分单员
                             $nowAgentIds = (new InquiryModel())
                                     ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']]);
-var_dump($nowAgentIds);
                             !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;
                         case 'LOGI_QUOTING'://物流报价
