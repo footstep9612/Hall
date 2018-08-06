@@ -1164,8 +1164,7 @@ class InquiryController extends PublicController {
             $actions = isset($condition['action']) ? explode(',', $condition['action']) : '';
             unset($condition['action']);
             $res = $inquiryCheckLogModel->getDetail($condition);
-
-
+		
             if ($actions && !empty($res['action']) && !in_array($res['action'], $actions)) {
                 $res = [];
             } elseif (empty($res)) {
@@ -1215,8 +1214,8 @@ class InquiryController extends PublicController {
                             break;
                         case 'LOGI_DISPATCHING'://物流分单员
                             $nowAgentIds = (new InquiryModel())
-                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryMode::logiIssueMainRole, ['in', ['lg', 'elg']]);
-
+                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']]);
+var_dump($nowAgentIds);
                             !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;
                         case 'LOGI_QUOTING'://物流报价
