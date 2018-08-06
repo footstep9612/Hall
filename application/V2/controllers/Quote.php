@@ -396,7 +396,8 @@ class QuoteController extends PublicController {
         }
         $res2 = $this->historicalSkuQuoteModel->addAll($list);
         $this->rollback($this->inquiryModel, $res2);
-        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_CONFIRMING', $this->user), null, Rfq_CheckLogModel::$mError);
+        $action = !empty($request['action']) ? $request['action'] : null;
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_CONFIRMING', $this->user, null, $action), null, Rfq_CheckLogModel::$mError);
 
         $this->inquiryModel->commit();
         $this->setCode('1');
