@@ -265,7 +265,6 @@ class EmployeeModel extends PublicModel {
      * @version V2.0
      * @desc
      */
-
     public function setUserNames(&$arr, $fileds) {
         if ($arr) {
 

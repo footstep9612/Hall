@@ -247,16 +247,22 @@ class QuoteModel extends PublicModel {
      * @param array $condition
      * @return array
      */
+
+    /**
+     * @param array $condition
+     * @return array
+     */
     public function rejectToBiz($condition, $user) {
         if (!empty($condition['inquiry_id'])) {
             $where['inquiry_id'] = $condition['inquiry_id'];
         }
-
+        $inquiry = new InquiryModel();
         $this->startTrans();
         $quoteResult = $this->where($where)->save(['status' => self::INQUIRY_BIZ_DISPATCHING]);
-
-        $inquiry = new InquiryModel();
-        $inquiry->startTrans();
+        if ($quoteResult === false) {
+            $this->rollback();
+            return ['code' => -104, 'message' => L('QUOTE_HAS_RETURNED')];
+        }
         $inquiryResult = $inquiry->updateData([
             'id' => $condition['inquiry_id'],
             'now_agent_id' => $condition['now_agent_id'],
@@ -275,17 +281,12 @@ class QuoteModel extends PublicModel {
         $flag = Rfq_CheckLogModel::addCheckLog($condition['inquiry_id'], self::INQUIRY_BIZ_DISPATCHING, $user, $in_node, 'REJECT', $op_note);
         if ($flag === false) {
             $this->rollback();
-            $inquiry->rollback();
             return ['code' => -104, 'message' => L('QUOTE_HAS_RETURNED')];
         }
-    }
 
-    /**
-     * 提交物流分单员
-     * @param $request 数据
-     * @param $user 操作用户id
-     * @return array
-     */
+        $this->commit();
+        return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
+    }
 
     /**
      * 提交物流分单员
@@ -401,11 +402,11 @@ class QuoteModel extends PublicModel {
                 }
             }
         }
-//        $flag = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], self::INQUIRY_LOGI_DISPATCHING, $user);
-//        if ($flag === false) {
-//            $this->rollback();
-//            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
-//        }
+        $flag = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], self::INQUIRY_LOGI_DISPATCHING, $user);
+        if ($flag === false) {
+            $this->rollback();
+            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
+        }
         $this->commit();
         return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
     }
