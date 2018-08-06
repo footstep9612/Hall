@@ -54,6 +54,7 @@ class BuyerVisitModel extends PublicModel {
         $length = 10;
         $offset = ($current_no-1)*$length;
         $total=$this->getTotalVisit($condition,$lang);
+        $total=$total[0]['total'];
 
 //        $total = $this->field('id')->where($condition)->count();
 //        $total_sql='select count(*) as total';
@@ -65,7 +66,6 @@ class BuyerVisitModel extends PublicModel {
 //        $total_sql.=' where ';
 //        $total_sql.=$condition;
 //        $total=$this->query($total_sql);
-        $total=$total[0]['total'];
 //        print_r($total);die;
 //        echo $this->getLastSql();die;
         if($total_flag===true){
@@ -707,15 +707,17 @@ class BuyerVisitModel extends PublicModel {
             return false;   //该条件下客户信息为空数据返回空
         }
 //        $total = $this->field('id')->where($condition)->count();
-        $total_sql='select count(*) as total';
-        $total_sql.=' from erui_buyer.buyer_visit visit ';
-        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
-        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
-        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
-        $total_sql.=' where ';
-        $total_sql.=$condition;
-        $total=$this->query($total_sql);
+//        $total_sql='select count(*) as total';
+//        $total_sql.=' from erui_buyer.buyer_visit visit ';
+//        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+//        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+//        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+//        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+//        $total_sql.=' where ';
+//        $total_sql.=$condition;
+//        $total=$this->query($total_sql);
+//        $total=$total[0]['total'];
+        $total=$this->getTotalVisit($condition,$lang);
         $total=$total[0]['total'];
         if($total==0){
             return false;   ///该条件下拜访记录为空数据
