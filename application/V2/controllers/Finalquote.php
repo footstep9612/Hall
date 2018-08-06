@@ -135,7 +135,6 @@ class FinalquoteController extends PublicController {
                     if ($itemrs['code'] != 1) {
                         $finalitem->rollback();
                         $this->jsonReturn('', '-101', L('FINAL_QUOTE_UPDATE_EXW_FAIL'));
-                        die;
                     }
                 }
             }
@@ -165,11 +164,9 @@ class FinalquoteController extends PublicController {
             if ($results['code'] == 1) {
                 $finalitem->commit();
                 $this->jsonReturn($results);
-                die;
             } else {
                 $finalitem->rollback();
                 $this->jsonReturn('', '-101', L('FAIL'));
-                die;
             }
         }
     }
