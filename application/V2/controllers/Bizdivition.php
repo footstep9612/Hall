@@ -45,6 +45,14 @@ class BizdivitionController extends PublicController{
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
+        $this->rollback($inquiry, null, $response);
+
+        $op_note = !empty($request['op_note']) ? $request['op_note'] : '';
+        $in_node = !empty($request['in_node']) ? $request['in_node'] : null;
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'REJECT_MARKET', $this->user, $in_node, 'REJECT', $op_note), null, Rfq_CheckLogModel::$mError);
+
+        $inquiry->commit();
+        $this->sendSms($employee->getMobileByUserId($now_agent_id), "REJECT", $employee->getUserNameById($now_agent_id), $inquiry->getSerialNoById($request['inquiry_id']), $this->user['name'], "BIZ_DISPATCHING", "REJECT_MARKET");
 
         $this->jsonReturn($response);
 
@@ -72,7 +80,12 @@ class BizdivitionController extends PublicController{
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
+        $this->rollback($inquiry, null, $response);
+        $op_note = !empty($request['op_note']) ? $request['op_note'] : '';
+        $in_node = !empty($request['in_node']) ? $request['in_node'] : null;
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'CC_DISPATCHING', $this->user, $in_node, 'REJECT', $op_note), null, Rfq_CheckLogModel::$mError);
 
+        $inquiry->commit();
         $this->jsonReturn($response);
 
     }

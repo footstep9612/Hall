@@ -266,12 +266,14 @@ class QuoteModel extends PublicModel {
             'updated_by' => $user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
-
-        if ($quoteResult && $inquiryResult) {
-            $this->commit();
-            $inquiry->commit();
-            return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
-        } else {
+        if ($inquiryResult['code'] != 1) {
+            $this->rollback();
+            return ['code' => -104, 'message' => L('QUOTE_HAS_RETURNED')];
+        }
+        $op_note = $condition['op_note'];
+        $in_node = $condition['in_node'];
+        $flag = Rfq_CheckLogModel::addCheckLog($condition['inquiry_id'], self::INQUIRY_BIZ_DISPATCHING, $user, $in_node, 'REJECT', $op_note);
+        if ($flag === false) {
             $this->rollback();
             $inquiry->rollback();
             return ['code' => -104, 'message' => L('QUOTE_HAS_RETURNED')];
@@ -329,8 +331,9 @@ class QuoteModel extends PublicModel {
             //给物流表创建一条记录
             //防止重复提交
             $hasFlag = $quoteLogiFeeModel->where(['inquiry_id' => $request['inquiry_id']])->find();
+            $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
             if (!$hasFlag) {
-                $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+
                 $flag = $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
                             'quote_id' => $quoteInfo['id'],
                             'inquiry_id' => $request['inquiry_id'],

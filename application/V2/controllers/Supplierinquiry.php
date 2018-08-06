@@ -152,20 +152,25 @@ class SupplierinquiryController extends PublicController {
         $where = ['i.deleted_flag' => 'N',
             'i.status' => ['neq', 'DRAFT'],
         ];
-        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-            $created_at_start = trim($condition['created_at_start']);
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
-        } elseif (!empty($condition['created_at_start'])) {
-
-            $created_at_start = trim($condition['created_at_start']);
-            $where['i.created_at'] = ['egt', $created_at_start];
-        } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['elt', $created_at_end];
-        }
-        if (!empty($condition['country_bn'])) {
-            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
+//        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+//            $created_at_start = trim($condition['created_at_start']);
+//            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+//            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+//        } elseif (!empty($condition['created_at_start'])) {
+//
+//            $created_at_start = trim($condition['created_at_start']);
+//            $where['i.created_at'] = ['egt', $created_at_start];
+//        } elseif (!empty($condition['created_at_end'])) {
+//            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+//            $where['i.created_at'] = ['elt', $created_at_end];
+//        }
+//        if (!empty($condition['country_bn'])) {
+//            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
+//        }
+        if (!empty($inquiry_ids)) {
+            $where['i.id'] = ['in', $inquiry_ids];
+        } else {
+            $where['i.id'] = -1;
         }
 //        if (!empty($inquiry_ids)) {
 //            $where['i.id'] = ['in', $inquiry_ids];

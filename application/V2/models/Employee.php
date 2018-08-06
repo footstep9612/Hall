@@ -257,4 +257,112 @@ class EmployeeModel extends PublicModel {
         return $ret;
     }
 
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setUserNames(&$arr, $fileds) {
+        if ($arr) {
+
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $this->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed_key => $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed_key] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed_key] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setUserName(&$arr, $fileds) {
+        if ($arr) {
+
+            $userids = [];
+
+            foreach ($fileds as $filed) {
+                if (isset($arr[$filed]) && $arr[$filed]) {
+                    $userids[] = $arr[$filed];
+                }
+            }
+            $usernames = $this->getUserNamesByUserids($userids);
+            foreach ($fileds as $filed_key => $filed) {
+                if ($arr[$filed] && isset($usernames[$arr[$filed]])) {
+                    $arr[$filed_key] = $usernames[$arr[$filed]];
+                } else {
+                    $arr[$filed_key] = '';
+                }
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setCitizenship(&$arr, $lang = 'zh') {
+        if ($arr && !empty($arr['obtain_id'])) {
+            $orgMemberModel = new OrgMemberModel();
+            $orgModel = new OrgModel();
+            $originChina = L('ORIGIN_CHINA');
+            $originForeign = L('ORIGIN_FOREIGN');
+            $arr['citizenship'] = $this->where(['id' => $arr['obtain_id']])->getField('citizenship');
+            switch ($arr['citizenship']) {
+                case'china': $arr['citizenship'] = $originChina;
+                    break;
+                case'foreign': $arr['citizenship'] = $originForeign;
+                    break;
+                default :$arr['citizenship'] = null;
+            }
+            $orgIds = $orgMemberModel->where(['employee_id' => $arr['obtain_id']])->getField('org_id', true);
+            switch ($lang) {
+                case'zh':$field = 'name';
+                    break;
+                case'en':$field = 'name_en';
+                    break;
+                case'es':$field = 'name_es';
+                    break;
+                case'ru':$field = 'name_ru';
+                    break;
+                default:$field = 'name';
+                    break;
+            }
+            $orgs = $orgModel->where(['id' => ['in', !empty($orgIds) ? $orgIds : ['-1']], 'deleted_flag' => 'N'])->getField($field, true);
+            $arr['group_name'] = implode(',', $orgs);
+        } else {
+            $arr['group_name'] = null;
+            $arr['citizenship'] = null;
+        }
+    }
+
 }
