@@ -1083,17 +1083,20 @@ class BuyerVisitModel extends PublicModel {
             return false;
         }
         $condition=$access;
-        if(!empty($data['visit_level'])){  //拜访级别
-            $condition.=" and visit_level like '%\"".$data['visit_level']."\"%'";
-        }
-        if(!empty($data['visit_position'])){  //拜访职位
-            $condition.=" and visit_position like '%\"".$data['visit_position']."\"%'";
-        }
+//        if(!empty($data['visit_level'])){  //拜访级别
+//            $condition.=" and visit_level like '%\"".$data['visit_level']."\"%'";
+//        }
+//        if(!empty($data['visit_position'])){  //拜访职位
+//            $condition.=" and visit_position like '%\"".$data['visit_position']."\"%'";
+//        }
         if(!empty($data['buyer_name'])){  //客户名称
             $condition.=" and buyer.name like '%$data[buyer_name]%'";
         }
         if(!empty($data['buyer_code'])){  //CRM客户代码
             $condition.=" and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['buyer_no'])){  //CRM客户代码
+            $condition.=" and buyer.buyer_no like '%$data[buyer_no]%'";
         }
         if(!empty($data['country_search'])){  //国家搜索
             $condition.=" and buyer.country_bn='$data[country_search]'";
