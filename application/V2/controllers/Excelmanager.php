@@ -246,7 +246,7 @@ class ExcelmanagerController extends PublicController {
         $inquiryItemModel = new InquiryItemModel();
         $quoteItemModel = new QuoteItemModel();
         $quoteitem_model = new Rfq_QuoteItemModel();
-
+        $suppliersModel = new SuppliersModel();
         array_shift($import_data); //去掉第一行数据(excel文件的标题)
         if (empty($import_data)) {
             return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
@@ -337,6 +337,8 @@ class ExcelmanagerController extends PublicController {
             else {
                 $inquiryItemModel->startTrans();
                 try {
+
+
                     if (!is_numeric($value['supplier_id'])) {
                         $value['supplier_id'] = 0;
                     }
@@ -549,22 +551,11 @@ class ExcelmanagerController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        //更改报价的状态
-        $quoteModel = new QuoteModel();
-        $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => 'QUOTE_SENT']);
-        //更改询单的状态
-        $inquiryModel = new InquiryModel();
-        $inquiryModel->updateData([
-            'id' => $request['inquiry_id'],
-            'status' => 'QUOTE_SENT',
-            'quote_status' => 'COMPLETED',
-            'updated_by' => $this->user['id']
-        ]);
-
         $inquiryAttach = new InquiryAttachModel();
         $condition = ['inquiry_id' => $request['inquiry_id'], 'attach_group' => 'FINAL_EXTERNAL'];
         $ret = $inquiryAttach->getList($condition);
         if ($ret['code'] == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])) {
+
             $this->jsonReturn([
                 'code' => '1',
                 'message' => L('EXCEL_SUCCESS'),
@@ -573,6 +564,23 @@ class ExcelmanagerController extends PublicController {
                 ]
             ]);
         }
+        //更改报价的状态
+        $quoteModel = new QuoteModel();
+        $inquiryModel = new InquiryModel();
+        $inquiryModel->startTrans();
+        $flag = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => 'QUOTE_SENT']);
+        //更改询单的状态
+        $this->rollback($inquiryModel, $flag);
+
+        $res1 = $inquiryModel->updateData([
+            'id' => $request['inquiry_id'],
+            'status' => 'QUOTE_SENT',
+            'quote_status' => 'COMPLETED',
+            'updated_by' => $this->user['id']
+        ]);
+        $this->rollback($inquiryModel, null, $res1);
+        $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'QUOTE_SENT', $this->user), null, Rfq_CheckLogModel::$mError);
+
 
         $data = $this->getCommercialQuoteData($request['inquiry_id']);
 
@@ -580,7 +588,7 @@ class ExcelmanagerController extends PublicController {
 
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
-        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+
         $url = $server . '/V2/Uploadfile/upload';
         $data['tmp_name'] = $excelFile;
         $data['type'] = 'application/excel';
@@ -588,7 +596,7 @@ class ExcelmanagerController extends PublicController {
         $remoteUrl = $this->postfile($data, $url);
 
         if (!$remoteUrl) {
-            $this->jsonReturn(['code' => '-104', 'message' => L('EXCEL_FAILD')]);
+            $this->rollback($inquiryModel, null, ['code' => '-104', 'message' => L('EXCEL_FAILD')]);
         }
         //构建打包文件数组
         $fileName = date('YmdHis');
@@ -599,12 +607,13 @@ class ExcelmanagerController extends PublicController {
         $fileId = $this->packAndUpload($url, $zipFile, $files);
         //上传失败
         if (empty($fileId) || empty($fileId['url'])) {
-            $this->jsonReturn(['code' => '-1', 'message' => L('EXCEL_FAILD'),]);
+            $this->rollback($inquiryModel, null, ['code' => '-1', 'message' => L('EXCEL_FAILD'),]);
+
             return;
         }
 
         //保存数据库
-        $data = [
+        $attach_data = [
             'inquiry_id' => $request['inquiry_id'],
             'attach_group' => 'FINAL_EXTERNAL',
             'attach_type' => 'application/zip',
@@ -613,8 +622,9 @@ class ExcelmanagerController extends PublicController {
             'created_by' => $this->user['id'],
             'created_at' => date('Y-m-d H:i:s')
         ];
-        $inquiryAttach->addData($data);
-
+        $res2 = $inquiryAttach->addData($attach_data);
+        $this->rollback($inquiryModel, null, $res2);
+        $inquiryModel->commit();
         //删除本地的临时文件
         @unlink($excelFile);
         $this->jsonReturn([
@@ -1500,6 +1510,23 @@ class ExcelmanagerController extends PublicController {
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "REJECTED_" . date('Ymd-His') . '.xls');
+    }
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        }
     }
 
 }

@@ -94,9 +94,10 @@ class QuoteController extends PublicController {
      */
     public function updateInfoAction() {
 
-        $request = $this->validateRequests('inquiry_id');
+        $val_request = $this->validateRequests('inquiry_id');
 
-        $request = $this->validateNumeric($request);
+        $request = $this->validateNumeric($val_request);
+        unset($val_request);
         $request['biz_quote_by'] = $this->user['id'];
         $request['biz_quote_at'] = date('Y-m-d H:i:s');
 
@@ -149,8 +150,10 @@ class QuoteController extends PublicController {
         $inquiryModel = new InquiryModel();
 
         $request = $this->validateRequests('inquiry_id');
+        $op_note = !empty($request['op_note']) ? $request['op_note'] : '';
 
-        $condition = ['inquiry_id' => $request['inquiry_id']];
+        $in_node = !empty($request['in_node']) ? $request['in_node'] : null;
+        $condition = ['inquiry_id' => $request['inquiry_id'], 'op_note' => $op_note, 'in_node' => $in_node];
         $org_id = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('org_id', true);
         $condition['now_agent_id'] = $inquiryModel->getInquiryIssueUserId($request['inquiry_id'], $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         $response = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
@@ -171,6 +174,7 @@ class QuoteController extends PublicController {
 
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
 
+
         $this->jsonReturn($response);
     }
 
@@ -182,6 +186,7 @@ class QuoteController extends PublicController {
         $request = $this->validateRequests('inquiry_id');
         $inquiryModel = new InquiryModel();
         $now_agent_id = $inquiryModel->where(['id' => $request['inquiry_id']])->getField('logi_agent_id');
+        $this->inquiryModel->startTrans();
         $result = $inquiryModel->updateData([
             'id' => $request['inquiry_id'],
             'now_agent_id' => $now_agent_id,
@@ -190,7 +195,12 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
+        $this->rollback($this->inquiryModel, null, $result);
+        $op_note = !empty($request['op_note']) ? $request['op_note'] : '';
+        $in_node = !empty($request['in_node']) ? $request['in_node'] : null;
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'LOGI_QUOTING', $this->user, $in_node, 'REJECT', $op_note), null, Rfq_CheckLogModel::$mError);
 
+        $this->inquiryModel->commit();
         $this->jsonReturn($result);
     }
 
@@ -203,8 +213,8 @@ class QuoteController extends PublicController {
 
         $inquiryModel = new InquiryModel();
         $check_org_id = $condition['check_org_id']; //$inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
-
-        $inquiryModel->updateData([
+        $this->inquiryModel->startTrans();
+        $response = $inquiryModel->updateData([
             'id' => $request['inquiry_id'],
             'now_agent_id' => $check_org_id,
             'inflow_time' => date('Y-m-d H:i:s', time()),
@@ -213,7 +223,7 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
-
+        $this->rollback($this->inquiryModel, null, $response);
         $this->quoteModel->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
         $finalQuoteModel = new FinalQuoteModel();
@@ -229,7 +239,7 @@ class QuoteController extends PublicController {
         $final = $finalQuoteModel->field('id')->where('inquiry_id=' . $request['inquiry_id'])->find();
 
         if (empty($final)) {
-            $finalQuoteModel->add($finalQuoteModel->create([
+            $flag = $finalQuoteModel->add($finalQuoteModel->create([
                         'inquiry_id' => $request['inquiry_id'],
                         'buyer_id' => $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('buyer_id'),
                         'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
@@ -245,8 +255,9 @@ class QuoteController extends PublicController {
                         'created_by' => $this->user['id'],
                         'created_at' => date('Y-m-d H:i:s')
             ]));
+            $this->rollback($this->inquiryModel, $flag);
         } else {
-            $finalQuoteModel->where('inquiry_id=' . $request['inquiry_id'])->save($finalQuoteModel->create([
+            $flag = $finalQuoteModel->where('inquiry_id=' . $request['inquiry_id'])->save($finalQuoteModel->create([
                         'inquiry_id' => $request['inquiry_id'],
                         'buyer_id' => $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('buyer_id'),
                         'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
@@ -262,6 +273,7 @@ class QuoteController extends PublicController {
                         'created_by' => $this->user['id'],
                         'created_at' => date('Y-m-d H:i:s')
             ]));
+            $this->rollback($this->inquiryModel, $flag);
         }
 
         $quoteItems = $this->quoteItemModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
@@ -269,9 +281,9 @@ class QuoteController extends PublicController {
         $finalItems = $finalQuoteItemModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('quote_item_id', true);
         $quote_id = $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
 
-        foreach ($quoteItems as $quote => $item) {
+        foreach ($quoteItems as $item) {
             if (!in_array($item['id'], $finalItems)) {
-                $finalQuoteItemModel->add($finalQuoteItemModel->create([
+                $flag = $finalQuoteItemModel->add($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $request['inquiry_id'],
                             'inquiry_item_id' => $item['inquiry_item_id'],
@@ -283,8 +295,9 @@ class QuoteController extends PublicController {
                             'created_by' => $this->user['id'],
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
+                $this->rollback($this->inquiryModel, $flag);
             } else {
-                $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
+                $flag = $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $request['inquiry_id'],
                             'inquiry_item_id' => $item['inquiry_item_id'],
@@ -296,13 +309,16 @@ class QuoteController extends PublicController {
                             'created_by' => $this->user['id'],
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
+                $this->rollback($this->inquiryModel, $flag);
             }
         }
 
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => L('QUOTE_SUCCESS')
-        ]);
+
+
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_APPROVING', $this->user), null, Rfq_CheckLogModel::$mError);
+
+        $this->inquiryModel->commit();
+        $this->jsonReturn(['code' => 1, 'message' => L('QUOTE_SUCCESS')]);
     }
 
     /**
@@ -325,7 +341,7 @@ class QuoteController extends PublicController {
         } else {
             $status = "BIZ_APPROVING";
         }
-
+        $this->inquiryModel->startTrans();
         $response = $this->inquiryModel->updateData([
             'id' => $request['inquiry_id'],
             'now_agent_id' => $now_agent_id,
@@ -334,7 +350,13 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
+        $this->rollback($this->inquiryModel, null, $response);
+        $op_note = !empty($request['op_note']) ? $request['op_note'] : '';
+        $in_node = !empty($request['in_node']) ? $request['in_node'] : null;
+        $flag = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], $status, $this->user, $in_node, 'REJECT', $op_note);
+        $this->rollback($this->inquiryModel, $flag);
 
+        $this->inquiryModel->commit();
         $this->jsonReturn($response);
     }
 
@@ -347,7 +369,9 @@ class QuoteController extends PublicController {
         $request = $this->validateRequests('inquiry_id');
 
         //更新当前办理人
-        $now_agent_id = $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('agent_id');
+        $now_agent_id = $this->inquiryModel
+                ->where(['id' => $request['inquiry_id']])
+                ->getField('agent_id');
 
         $this->inquiryModel->startTrans();
 
@@ -360,7 +384,7 @@ class QuoteController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => date('Y-m-d H:i:s', time())
         ]);
-
+        $this->rollback($this->inquiryModel, null, $res1);
         // 记录历史报价
         $list = $this->finalQuoteItemModel
                 ->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')
@@ -371,18 +395,14 @@ class QuoteController extends PublicController {
             $item['created_at'] = date('Y-m-d H:i:s');
         }
         $res2 = $this->historicalSkuQuoteModel->addAll($list);
+        $this->rollback($this->inquiryModel, $res2);
+        $action = !empty($request['action']) ? $request['action'] : null;
+        $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_CONFIRMING', $this->user, null, $action), null, Rfq_CheckLogModel::$mError);
 
-        if ($res1 && $res2) {
-            $this->inquiryModel->commit();
-            $this->setCode('1');
-            $this->setMessage(L('SUCCESS'));
-            $this->jsonReturn(true);
-        } else {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $this->inquiryModel->commit();
+        $this->setCode('1');
+        $this->setMessage(L('SUCCESS'));
+        $this->jsonReturn(true);
     }
 
     /**
@@ -421,13 +441,13 @@ class QuoteController extends PublicController {
         $this->rollback($this->inquiryModel, null, $res1);
 
 
-        $flag = $quoteModel->where(['inquiry_id' => $inquiry_id])->save(['status' => 'BIZ_APPROVING']);
-        $this->rollback($this->inquiryModel, $flag);
+        $flag1 = $quoteModel->where(['inquiry_id' => $inquiry_id])->save(['status' => 'BIZ_APPROVING']);
+        $this->rollback($this->inquiryModel, $flag1);
 
 
         $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
-        $flag = $quote_logi_fee_Model->submit($inquiry_id);
-        $this->rollback($this->inquiryModel, $flag);
+        $flag2 = $quote_logi_fee_Model->submit($inquiry_id);
+        $this->rollback($this->inquiryModel, $flag2);
 
         $FinalQuoteModel = new Rfq_FinalQuoteModel();
         $res2 = $FinalQuoteModel->submit($inquiry_id);
@@ -440,6 +460,23 @@ class QuoteController extends PublicController {
         $this->setCode('1');
         $this->setMessage(L('SUCCESS'));
         $this->jsonReturn(true);
+    }
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        }
     }
 
     /**
@@ -457,7 +494,16 @@ class QuoteController extends PublicController {
             'status' => 'REJECT_QUOTING',
             'updated_by' => $this->user['id']
         ];
+        $this->inquiryModel->startTrans();
         $res = $this->inquiryModel->updateData($data);
+
+        $op_note = !empty($request['op_note']) ? $request['op_note'] : '';
+        $in_node = !empty($request['in_node']) ? $request['in_node'] : null;
+        $flag = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'REJECT_QUOTING', $this->user, $in_node, 'REJECT', $op_note);
+        $this->rollback($this->inquiryModel, $flag);
+
+
+        $this->inquiryModel->commit();
         $this->jsonReturn($res);
     }
 
@@ -649,10 +695,11 @@ class QuoteController extends PublicController {
         $this->_setOrgName($list);
         $this->_setMaterialCatName($list);
         foreach ($list as $key => $value) {
-            $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);
-            $list[$key]['quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_unit_price']);
-            $list[$key]['final_exw_unit_price'] = sprintf("%.4f", $list[$key]['final_exw_unit_price']);
-            $list[$key]['final_quote_unit_price'] = sprintf("%.4f", $list[$key]['final_quote_unit_price']);
+            $value['exw_unit_price'] = sprintf("%.4f", $value['exw_unit_price']);
+            $value['quote_unit_price'] = sprintf("%.4f", $value['quote_unit_price']);
+            $value['final_exw_unit_price'] = sprintf("%.4f", $value['final_exw_unit_price']);
+            $value['final_quote_unit_price'] = sprintf("%.4f", $value['final_quote_unit_price']);
+            $list[$key] = $value;
         }
 
         $this->jsonReturn([
@@ -706,16 +753,12 @@ class QuoteController extends PublicController {
                 $resquote = $this->quoteItemModel->delItem($request['id']);    //删除报价单SKU
                 if ($resquote) {
                     //判断物流SKU表是否存在数据，有就删除
-                    $logiItemIds = $quoteItemLogiModel->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id', true);
+                    $logiItemIds = $quoteItemLogiModel
+                                    ->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id', true);
                     if ($logiItemIds) {
                         $logiItemId['r_id'] = implode(',', $logiItemIds);
                         $reslogi = $quoteItemLogiModel->delRecord($logiItemId);
-                        if (!$reslogi) {
-                            $this->inquiryItemModel->rollback();
-                            $results['code'] = '-101';
-                            $results['message'] = '删除失败!';
-                            $this->jsonReturn($results);
-                        }
+                        $this->rollback($this->inquiryItemModel, $reslogi, null);
                     }
 
                     //判断物流SKU表是否存在数据，有就删除
@@ -723,12 +766,7 @@ class QuoteController extends PublicController {
                     if ($finalItemIds) {
                         $finalItemId['id'] = implode(',', $finalItemIds);
                         $resfinal = $finalQuoteItemModel->delItem($finalItemId);
-                        if (!$resfinal) {
-                            $this->inquiryItemModel->rollback();
-                            $results['code'] = '-101';
-                            $results['message'] = L('QUOTE_DELETE_FAIL');
-                            $this->jsonReturn($results);
-                        }
+                        $this->rollback($this->inquiryItemModel, null, $resfinal);
                     }
                     $this->inquiryItemModel->commit();
                     $this->jsonReturn($results);
@@ -811,8 +849,9 @@ class QuoteController extends PublicController {
         if ($params) {
             $params = explode(',', $params);
             foreach ($params as $param) {
-                if (empty($request[$param]))
+                if (empty($request[$param])) {
                     $this->jsonReturn(['code' => '-104', 'message' => L('MISSING_PARAMETER')]);
+                }
             }
         }
 
@@ -863,9 +902,16 @@ class QuoteController extends PublicController {
      *
      * @return array
      */
+
+    /**
+     * 验证报价单SKU必填和数字字段
+     * @param array $data
+     *
+     * @return array
+     */
     public function checkSkuFieldsAction($data = []) {
 
-        foreach ($data as $key => $value) {
+        foreach ($data as $value) {
             if (empty($value['reason_for_no_quote'])) {
                 //供应商活着未报价分析
 //                if (empty($value['supplier_id'])) {
@@ -929,23 +975,6 @@ class QuoteController extends PublicController {
         }
 
         return ['code' => 1, 'message' => L('QUOTE_VALIDATION')];
-    }
-
-    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
-        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
-            $inquiry->rollback();
-            $this->jsonReturn($results);
-        } elseif ($results === false) {
-            $inquiry->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL') . $error);
-            $this->jsonReturn();
-        } elseif ($flag === false) {
-            $inquiry->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL') . $error);
-            $this->jsonReturn();
-        }
     }
 
 }
