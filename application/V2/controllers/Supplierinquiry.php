@@ -47,6 +47,7 @@ class SupplierinquiryController extends PublicController {
             'data' => $suppliersStatics
         ]);
 
+        p($total);
     }
 
     /*
@@ -136,47 +137,44 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryexportAction() {
-        ini_set('memory_limit', '4G');
+        ini_set('memory_limit', '1G');
         set_time_limit(0);
         $condition = $this->getPut();
+        unset($condition['token']);
         $supplier_inquiry_model = new SupplierInquiryModel();
-        // 导出多少天以内的数据
         if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
             $days = intval($condition['last_days']) ?: 31;
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
-        $data = $supplier_inquiry_model->Inquiryexport($condition);
-
-        if ($data) {
-            $this->jsonReturn($data);
-        } elseif ($data === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据!');
-            $this->jsonReturn();
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
-        }
-    }
-
-    /*     * **********----导出询单列表----****************
-     * |supplier_id|是|string|供应商id|
-     * |current_no |否  |int    |当前页(默认1)|
-     * |pagesize |否	|int	|每页显示条数|
-     */
-
-    public function InquiryToatolexportAction() {
-        ini_set('memory_limit', '4G');
-        set_time_limit(0);
-        $condition = $this->getPut();
-        $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
-            $days = intval($condition['last_days']) ?: 31;
-            $condition['created_at_start'] = $this->_getLastDaysDate($days);
+//        $inquiryModel = new InquiryModel();
+//        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
+        $where = ['i.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+        ];
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+        } elseif (!empty($condition['created_at_start'])) {
+
+            $created_at_start = trim($condition['created_at_start']);
+            $where['i.created_at'] = ['egt', $created_at_start];
+        } elseif (!empty($condition['created_at_end'])) {
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+            $where['i.created_at'] = ['elt', $created_at_end];
         }
-        $data = $supplier_inquiry_model->InquiryToatolexport($condition);
+        if (!empty($condition['country_bn'])) {
+            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
+        }
+//        if (!empty($inquiry_ids)) {
+//            $where['i.id'] = ['in', $inquiry_ids];
+//        } else {
+//            $where['i.id'] = -1;
+//        }
+
+
+        $data = $supplier_inquiry_model->Inquiryexport($where);
 
         if ($data) {
             $this->jsonReturn($data);

@@ -164,7 +164,10 @@ class QuoteController extends PublicController {
     public function sendLogisticsAction() {
 
         $request = $this->validateRequests('inquiry_id');
-
+        $res = $this->quoteModel->validate($request['inquiry_id']);
+        if ($res['code'] != 1) {
+            $this->jsonReturn($res);
+        }
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
 
         $this->jsonReturn($response);
@@ -280,7 +283,7 @@ class QuoteController extends PublicController {
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
             } else {
-                $finalQuoteItemModel->where('id=' . $item['id'])->save($finalQuoteItemModel->create([
+                $finalQuoteItemModel->where(['quote_item_id' => $item['id']])->save($finalQuoteItemModel->create([
                             'quote_id' => $quote_id,
                             'inquiry_id' => $request['inquiry_id'],
                             'inquiry_item_id' => $item['inquiry_item_id'],
@@ -407,56 +410,35 @@ class QuoteController extends PublicController {
                 'message' => '保险税率必须小于1且大于等于零!'
             ]);
         }
-        $inquiryModel->startTrans();
+        $this->inquiryModel->startTrans();
         $inquiry_id = $request['inquiry_id'];
+
         $result = $quoteModel->updateGeneralInfo($condition, $request);
-        if ($result['code'] !== 1) {
-            $inquiryModel->rollback();
-            $this->jsonReturn($result);
-        }
+        $this->rollback($this->inquiryModel, null, $result);
+
         $res1 = $inquiryModel->submit($inquiry_id);
-        if ($res1['code'] != 1) {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $this->rollback($this->inquiryModel, null, $res1);
+
+
         $flag = $quoteModel->where(['inquiry_id' => $inquiry_id])->save(['status' => 'BIZ_APPROVING']);
-        if ($flag === false) {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $this->rollback($this->inquiryModel, $flag);
+
+
         $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
         $flag = $quote_logi_fee_Model->submit($inquiry_id);
-        if ($flag === false) {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $this->rollback($this->inquiryModel, $flag);
+
         $FinalQuoteModel = new Rfq_FinalQuoteModel();
         $res2 = $FinalQuoteModel->submit($inquiry_id);
-        if ($res2 === false) {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
-        $check_log_model = new Rfq_CheckLogModel();
-        $falg = $check_log_model->AddQuoteToSubmitLog($inquiry_id, $this->user);
-        if (isset($falg['code']) && $falg['code'] == 1) {
-            $this->inquiryModel->commit();
-            $this->setCode('1');
-            $this->setMessage(L('SUCCESS'));
-            $this->jsonReturn(true);
-        } else {
-            $this->inquiryModel->rollback();
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $this->rollback($this->inquiryModel, $res2);
+
+        $falg = Rfq_CheckLogModel::AddQuoteToSubmitLog($inquiry_id, $this->user);
+        $this->rollback($this->inquiryModel, $falg, null, Rfq_CheckLogModel::$mError);
+
+        $this->inquiryModel->commit();
+        $this->setCode('1');
+        $this->setMessage(L('SUCCESS'));
+        $this->jsonReturn(true);
     }
 
     /**
@@ -885,9 +867,9 @@ class QuoteController extends PublicController {
         foreach ($data as $key => $value) {
             if (empty($value['reason_for_no_quote'])) {
                 //供应商活着未报价分析
-                if (empty($value['supplier_id'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
-                }
+//                if (empty($value['supplier_id'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_SUPPLIER_REQUIRED')];
+//                }
                 //品牌
                 if (empty($value['brand'])) {
                     return ['code' => '-104', 'message' => L('QUOTE_BRAND_REQUIRED')];
@@ -906,17 +888,17 @@ class QuoteController extends PublicController {
                     return ['code' => '-104', 'message' => L('QUOTE_PPC_REQUIRED')];
                 }
                 //毛重
-                if (empty($value['gross_weight_kg'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_GW_REQUIRED')];
-                }
-                if (!is_numeric($value['gross_weight_kg'])) {
+//                if (empty($value['gross_weight_kg'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_GW_REQUIRED')];
+//                }
+                if (!empty($value['gross_weight_kg']) && !is_numeric($value['gross_weight_kg'])) {
                     return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER')];
                 }
                 //包装体积
-                if (empty($value['package_size'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_PS_REQUIRED')];
-                }
-                if (!is_numeric($value['package_size'])) {
+//                if (empty($value['package_size'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_PS_REQUIRED')];
+//                }
+                if (!empty($value['package_size']) && !is_numeric($value['package_size'])) {
                     return ['code' => '-104', 'message' => L('QUOTE_PS_NUMBER')];
                 }
                 //包装方式
@@ -939,13 +921,30 @@ class QuoteController extends PublicController {
                     return ['code' => '-104', 'message' => L('QUOTE_DD_NUMBER')];
                 }
                 //报价有效期
-                if (empty($value['period_of_validity'])) {
-                    return ['code' => '-104', 'message' => L('QUOTE_POF_REQUIRED')];
-                }
+//                if (empty($value['period_of_validity'])) {
+//                    return ['code' => '-104', 'message' => L('QUOTE_POF_REQUIRED')];
+//                }
             }
         }
 
         return ['code' => 1, 'message' => L('QUOTE_VALIDATION')];
+    }
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        }
     }
 
 }

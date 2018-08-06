@@ -204,13 +204,13 @@ class LogisticsController extends PublicController {
             $quoteLogiFee = $this->quoteLogiFeeModel->getJoinDetail($condition);
 
             if ($quoteLogiFee) {
-                $quoteLogiFee['land_freight_usd'] = round($quoteLogiFee['land_freight'] / $this->_getRateUSD($quoteLogiFee['land_freight_cur']), 8);
-                $quoteLogiFee['port_surcharge_usd'] = round($quoteLogiFee['port_surcharge'] / $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']), 8);
-                $quoteLogiFee['inspection_fee_usd'] = round($quoteLogiFee['inspection_fee'] / $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']), 8);
-                $quoteLogiFee['inter_shipping_usd'] = round($quoteLogiFee['inter_shipping'] / $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']), 8);
+                $quoteLogiFee['land_freight_usd'] = round($quoteLogiFee['land_freight'] * $this->_getRateUSD($quoteLogiFee['land_freight_cur']), 8);
+                $quoteLogiFee['port_surcharge_usd'] = round($quoteLogiFee['port_surcharge'] * $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']), 8);
+                $quoteLogiFee['inspection_fee_usd'] = round($quoteLogiFee['inspection_fee'] * $this->_getRateUSD($quoteLogiFee['inspection_fee_cur']), 8);
+                $quoteLogiFee['inter_shipping_usd'] = round($quoteLogiFee['inter_shipping'] * $this->_getRateUSD($quoteLogiFee['inter_shipping_cur']), 8);
 
-                $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] / $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
-                $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] / $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
+                $quoteLogiFee['dest_delivery_fee_usd'] = round($quoteLogiFee['dest_delivery_fee'] * $this->_getRateUSD($quoteLogiFee['dest_delivery_fee_cur']), 8);
+                $quoteLogiFee['dest_clearance_fee_usd'] = round($quoteLogiFee['dest_clearance_fee'] * $this->_getRateUSD($quoteLogiFee['dest_clearance_fee_cur']), 8);
 
                 $overlandInsuFee = $this->_getOverlandInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['overland_insu_rate']);
                 $quoteLogiFee['overland_insu'] = $overlandInsuFee['CNY'];
@@ -333,7 +333,7 @@ class LogisticsController extends PublicController {
                         $portSurchargeData['created_by'] = $this->user['id'];
                         $portSurchargeData['created_at'] = $this->time;
                         $portSurchargeList[] = $portSurchargeData;
-                        $data['port_surcharge'] += round($portSurchargeItem['price'] * $portSurchargeItem['qty'] / $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
+                        $data['port_surcharge'] += round($portSurchargeItem['price'] * $portSurchargeItem['qty'] * $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
                     }
                     if ($data['trade_terms_bn'] != 'FOB') {
                         if (empty($data['inter_shipping_items'])) {
@@ -359,7 +359,7 @@ class LogisticsController extends PublicController {
                                 $interShippingData['created_by'] = $this->user['id'];
                                 $interShippingData['created_at'] = $this->time;
                                 $interShippingList[] = $interShippingData;
-                                $data['inter_shipping'] += round($interShippingItem['price'] * $interShippingItem['qty'] / $this->_getRateUSD($interShippingItem['cur_bn']), 8);
+                                $data['inter_shipping'] += round($interShippingItem['price'] * $interShippingItem['qty'] * $this->_getRateUSD($interShippingItem['cur_bn']), 8);
                             }
                         }
                     }
@@ -949,6 +949,7 @@ class LogisticsController extends PublicController {
      * @time 2018-05-29
      */
     public function rejectQuotingToMarketAppovingAction() {
+
         $condition = $this->put_data;
 
         if (!empty($condition['inquiry_id'])) {
@@ -958,47 +959,32 @@ class LogisticsController extends PublicController {
             }
 
             $this->inquiryModel->startTrans();
-
-            $where['inquiry_id'] = $condition['inquiry_id'];
-            $quote = $this->quoteModel->where($where)->find();
-            $data['premium_rate'] = $quote['premium_rate'];
-            $data['trade_terms_bn'] = $quote['trade_terms_bn'];
-            $data['payment_period'] = $quote['payment_period'];
-            $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
-            $data['bank_interest'] = $quote['bank_interest'];
-            $data['total_exw_price'] = $quote['total_exw_price'];
-            $data['certification_fee'] = $quote['certification_fee'];
-            $data['certification_fee_cur'] = $quote['certification_fee_cur'];
-            $data = $this->calcuTotalLogiFee($data);
-
             $inquiryData = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $inquiry['check_org_id'],
                 'status' => 'MARKET_APPROVING',
                 'updated_by' => $this->user['id']
             ];
-            $res1 = $this->inquiryModel->updateData($inquiryData);
+            $res = $this->inquiryModel->updateData($inquiryData);
+            $this->rollback($this->inquiryModel, null, $res);
 
-            $quoteData = [
-                'total_logi_fee' => $data['total_logi_fee'],
-                'total_quote_price' => $data['total_quote_price'],
-                'total_bank_fee' => $data['total_logi_fee'],
-                'total_insu_fee' => $data['total_insu_fee'],
-                'updated_by' => $this->user['id'],
-                'updated_at' => $this->time
-            ];
-            $res2 = $this->quoteModel->where($where)->save($quoteData);
+            $result = $this->quoteModel->GeneralInfo(['inquiry_id' => $condition['inquiry_id']]);
 
-            $res3 = $this->_updateQuoteUnitPrice($condition['inquiry_id'], $data);
+            $this->rollback($this->inquiryModel, null, $result);
+            $flag = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
+            $this->rollback($this->inquiryModel, $flag);
 
-            if ($res1['code'] == 1 && $res2 && $res3) {
-                $this->inquiryModel->commit();
-                $res = true;
-            } else {
-                $this->inquiryModel->rollback();
-                $res = false;
-            }
 
+            $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
+            $flag = $quote_logi_fee_Model->submit($condition['inquiry_id']);
+
+            $this->rollback($this->inquiryModel, $flag);
+            $FinalQuoteModel = new Rfq_FinalQuoteModel();
+            $res2 = $FinalQuoteModel->submit($condition['inquiry_id']);
+            $this->rollback($this->inquiryModel, $res2);
+            $flag = $FinalQuoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
+            $this->rollback($this->inquiryModel, $flag);
+            $this->inquiryModel->commit();
             $this->jsonReturn($res);
         } else {
             $this->jsonReturn(false);
@@ -1148,15 +1134,15 @@ class LogisticsController extends PublicController {
                 $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'] > 0 ? $condition['dest_va_tax_rate'] : 0;
         }
 
-        $certificationFeeUSD = round($data['certification_fee'] / $this->_getRateUSD($data['certification_fee_cur']), 8);
-        $inspectionFeeUSD = round($data['inspection_fee'] / $this->_getRateUSD($data['inspection_fee_cur']), 8);
-        $landFreightUSD = round($data['land_freight'] / $this->_getRateUSD($data['land_freight_cur']), 8);
+        $certificationFeeUSD = round($data['certification_fee'] * $this->_getRateUSD($data['certification_fee_cur']), 8);
+        $inspectionFeeUSD = round($data['inspection_fee'] * $this->_getRateUSD($data['inspection_fee_cur']), 8);
+        $landFreightUSD = round($data['land_freight'] * $this->_getRateUSD($data['land_freight_cur']), 8);
         $overlandInsuFee = $this->_getOverlandInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
         $overlandInsuUSD = $overlandInsuFee['USD'];
-        $portSurchargeUSD = round($data['port_surcharge'] / $this->_getRateUSD($data['port_surcharge_cur']), 8);
-        $interShippingUSD = round($data['inter_shipping'] / $this->_getRateUSD($data['inter_shipping_cur']), 8);
-        $destDeliveryFeeUSD = round($data['dest_delivery_fee'] / $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
-        $destClearanceFeeUSD = round($data['dest_clearance_fee'] / $this->_getRateUSD($data['dest_clearance_fee_cur']), 8);
+        $portSurchargeUSD = round($data['port_surcharge'] * $this->_getRateUSD($data['port_surcharge_cur']), 8);
+        $interShippingUSD = round($data['inter_shipping'] * $this->_getRateUSD($data['inter_shipping_cur']), 8);
+        $destDeliveryFeeUSD = round($data['dest_delivery_fee'] * $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
+        $destClearanceFeeUSD = round($data['dest_clearance_fee'] * $this->_getRateUSD($data['dest_clearance_fee_cur']), 8);
         $sumUSD = $data['total_exw_price'] + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $inspectionFeeUSD + $interShippingUSD;
         $destTariffUSD = round($sumUSD * $data['dest_tariff_rate'] / 100, 8);
         $destVaTaxUSD = round($sumUSD * (1 + $data['dest_tariff_rate'] / 100) * $data['dest_va_tax_rate'] / 100, 8);
@@ -1307,7 +1293,7 @@ class LogisticsController extends PublicController {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('CNY', $cur);
+            return $this->_getRate($cur, 'CNY');
         }
     }
 
@@ -1323,7 +1309,7 @@ class LogisticsController extends PublicController {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('USD', $cur);
+            return $this->_getRate($cur, 'USD');
         }
     }
 
@@ -1444,6 +1430,23 @@ class LogisticsController extends PublicController {
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
             parent::jsonReturn();
+        }
+    }
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
         }
     }
 
