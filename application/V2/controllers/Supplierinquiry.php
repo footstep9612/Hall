@@ -147,8 +147,8 @@ class SupplierinquiryController extends PublicController {
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         // 导出多少天以内的数据
-//        $inquiryModel = new InquiryModel();
-//        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
+        $inquiryModel = new InquiryModel();
+        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
         $where = ['i.deleted_flag' => 'N',
             'i.status' => ['neq', 'DRAFT'],
         ];
