@@ -1,19 +1,16 @@
 <?php
 
-class NoticeController extends PublicController
-{
+class NoticeController extends PublicController {
 
     protected $notice;
 
-    public function init()
-    {
+    public function init() {
         parent::init();
 
         $this->notice = new NoticeModel();
     }
 
-    public function listAction()
-    {
+    public function listAction() {
         $request = $this->validateRequestParams();
         $data = $this->notice->all($request);
 
@@ -26,19 +23,20 @@ class NoticeController extends PublicController
         ]);
     }
 
-    public function createAction()
-    {
+    public function createAction() {
         $data = $this->validateRequestParams('title,content');
 
         $data['created_by'] = $this->user['id'];
         $data['created_at'] = date('Y-m-d H:i:s');
 
         $response = $this->notice->store($data);
+        if ($response['code'] == 1) {
+            $this->_delCache();
+        }
         $this->jsonReturn($response);
     }
 
-    public function showAction()
-    {
+    public function showAction() {
         $request = $this->validateRequestParams('id');
         $data = $this->notice->byId($request['id']);
 
@@ -49,20 +47,20 @@ class NoticeController extends PublicController
         ]);
     }
 
-    public function updateAction()
-    {
+    public function updateAction() {
         $data = $this->validateRequestParams('title,content');
 
         $data['updated_by'] = $this->user['id'];
         $data['updated_at'] = date('Y-m-d H:i:s');
 
         $response = $response = $this->notice->upStore($data);
+        if ($response['code'] == 1) {
+            $this->_delCache();
+        }
         $this->jsonReturn($response);
-
     }
 
-    public function publishAction()
-    {
+    public function publishAction() {
         $request = $this->validateRequestParams('id');
 
         $request['updated_by'] = $this->user['id'];
@@ -70,11 +68,13 @@ class NoticeController extends PublicController
         $request['status'] = 'PUBLISH';
 
         $response = $this->notice->upStore($request);
+        if ($response['code'] == 1) {
+            $this->_delCache();
+        }
         $this->jsonReturn($response);
     }
 
-    public function deleteAction()
-    {
+    public function deleteAction() {
         $request = $this->validateRequestParams('id');
 
         $request['updated_by'] = $this->user['id'];
@@ -82,17 +82,31 @@ class NoticeController extends PublicController
         $request['deleted_flag'] = 'Y';
 
         $response = $this->notice->upStore($request);
+        if ($response['code'] == 1) {
+            $this->_delCache();
+        }
         $this->jsonReturn($response);
     }
 
-    private function setUserName($data)
-    {
+    private function setUserName($data) {
         $employee = new EmployeeModel();
-        foreach ($data as $key=>$item) {
-            $data[$key]['created_by'] = $employee->where(['id'=> $item['created_by']])->getField('name');
-            $data[$key]['updated_by'] = $employee->where(['id'=> $item['updated_by']])->getField('name');
+        foreach ($data as $key => $item) {
+            $data[$key]['created_by'] = $employee->where(['id' => $item['created_by']])->getField('name');
+            $data[$key]['updated_by'] = $employee->where(['id' => $item['updated_by']])->getField('name');
         }
 
         return $data;
     }
+
+    /*
+     * 删除缓存
+     */
+
+    private function _delCache() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('notice');
+
+        $redis->delete($keys);
+    }
+
 }
