@@ -344,7 +344,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= 'if(i.proxy_flag=\'Y\',\'是\',\'否\') as proxy_flag,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,i.obtain_id,qt.supplier_id,qt.purchase_price_cur_bn,it.material_cat_no,qt.org_id as qt_org_id';
+        $field .= 'i.quote_deadline,i.obtain_id,qt.supplier_id,qt.purchase_price_cur_bn,it.material_cat_no,qt.org_id as qt_org_id,';
         $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
         $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
 
