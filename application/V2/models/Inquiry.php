@@ -1001,12 +1001,14 @@ class InquiryModel extends PublicModel {
         $orgModel = new OrgModel();
 
         $where = [
-            'id' => ['in', $groupId ?: ['-1']],
+            'id' => ['in', !empty($groupId) ? $groupId : ['-1']],
             'org_node' => $orgNode,
             'deleted_flag' => 'N'
         ];
 
-        return $orgModel->where($where)->getField('id', true);
+        $data = $orgModel->where($where)->getField('id', true);
+
+        return $data;
     }
 
     /**
@@ -1214,6 +1216,50 @@ class InquiryModel extends PublicModel {
         $ret = empty($employeeIds) ? $employeeIds_1 : (empty($employeeIds_1) ? $employeeIds : array_merge($employeeIds, $employeeIds_1));
 
         return $ret;
+    }
+
+    public function getPermissions($id = '', $groupId = '', $roleNo1s = [], $roleNo2s = [], $orgNode = [], $user = []) {
+        $country = $this->getInquiryCountry($id);
+        if (empty($groupId)) {
+
+            return false;
+        }
+        $orgId = $this->getDeptOrgId([$groupId], $orgNode);
+
+        if (empty($orgId)) {
+
+            return false;
+        }
+
+        if (is_array($roleNo1s)) {
+            foreach ($roleNo1s as $roleNo1) {
+                if (in_array($roleNo1, $user['role_no']) && in_array($country, $user['country_bn']) && in_array($groupId, $user['group_id'])) {
+
+                    return true;
+                }
+            }
+        } else {
+            if (in_array($roleNo1s, $user['role_no']) && in_array($country, $user['country_bn']) && in_array($groupId, $user['group_id'])) {
+
+                return true;
+            }
+        }
+
+        if (is_array($roleNo2s)) {
+            foreach ($roleNo2s as $roleNo2) {
+                if (in_array($roleNo2, $user['role_no']) && in_array($groupId, $user['group_id'])) {
+
+                    return true;
+                }
+            }
+        } else {
+            if (in_array($roleNo2s, $user['role_no']) && in_array($groupId, $user['group_id'])) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
