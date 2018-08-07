@@ -943,6 +943,8 @@ class SupplierInquiryModel extends PublicModel {
                 $tmpList[$serialNo]['total_kg'] = $item['total_kg'];
                 $tmpList[$serialNo]['package_size'] = $item['package_size'];
                 $tmpList[$serialNo]['package_mode'] = '';
+                $tmpList[$serialNo]['material_cat_name'] = '';
+                $tmpList[$serialNo]['qt_org_name'] = '';
             } else {
 
                 $tmpList[$serialNo]['total_kg'] += $item['total_kg'];
