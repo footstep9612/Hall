@@ -1287,7 +1287,7 @@ class MaterialCatModel extends PublicModel {
             }
             $catnames = $this->getNameByCatNos($catnos, $lang);
             foreach ($arr as $key => $val) {
-                if ($val['category'] && !empty($val['material_cat_no']) && !empty($catnames[$val['material_cat_no']])) {
+                if (!empty($val['material_cat_no']) && !empty($catnames[$val['material_cat_no']])) {
                     $val['material_cat_name'] = $catnames[$val['material_cat_no']];
                 } else {
                     $val['material_cat_name'] = '';
