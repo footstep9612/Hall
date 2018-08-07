@@ -3076,56 +3076,84 @@ EOF;
                 ->order('buyer.build_modify_time desc')
                 ->limit($i,$pageSize)
                 ->select();
-            if(!empty($info)){
-                $country = new CountryModel();
-                $level = new BuyerLevelModel();
-                $credit = new CreditModel();
-                foreach($info as $k => $v){
-                    $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
-                    if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
-                        $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
-                    }
+            if(empty($info)){
+               return false;
+            }
+            $country = new CountryModel();
+            $level = new BuyerLevelModel();
+            $credit = new CreditModel();
+            $net=new NetSubjectModel();
+            $agentModel = new BuyerAgentModel();
+            $visitModel = new BuyerVisitModel();
+            $inquiryModel = new InquiryModel();
+            $orderModel = new OrderModel();
+            foreach($info as $k => $v){
+                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
+                if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
+                    $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+                }
 //                    if(empty($v['build_time'])){
 //                        $info[$k]['build_time']=$v['created_at'];
 //                    }
 //                    if(empty($v['level_at'])){
 //                        $info[$k]['level_at']=substr($v['created_at'],0,10);
 //                    }
-                    if(!empty($info[$k]['credit_level']) && is_numeric($info[$k]['credit_level'])){
-                        $info[$k]['credit_level'] = $credit->getCreditNameById($v['credit_level'],$lang);
-                    }
-                    if(!empty($info[$k]['credit_type']) && is_numeric($info[$k]['credit_type'])){
-                        $info[$k]['credit_type'] = $credit->getCreditNameById($v['credit_type'],$lang);
-                    }
-                    //获取入网管理
-                    $net=new NetSubjectModel();
-                    $netInfo=$net->showNetSubject(array('buyer_id'=>$v['id']));
-                    if(empty($netInfo)){    //arr
-                        $info[$k]['is_net']='N'; //是否入网
-                        $info[$k]['net_at']=''; //入网时间
-                        $info[$k]['net_invalid_at']=''; //失效时间
-                    }elseif(!empty($netInfo['erui']['net_at'])){
-                        $info[$k]['is_net']='Y'; //是否入网
-                        $info[$k]['net_at']=$netInfo['erui']['net_at']; //入网时间
-                        $info[$k]['net_invalid_at']=$netInfo['erui']['net_invalid_at']; //失效时间
-                    }else{
-                        $info[$k]['is_net']='Y'; //是否入网
-                        $info[$k]['net_at']=$netInfo['equipment']['net_at']; //入网时间
-                        $info[$k]['net_invalid_at']=$netInfo['equipment']['net_invalid_at']; //失效时间
-                    }
-
+                if(!empty($info[$k]['credit_level']) && is_numeric($info[$k]['credit_level'])){
+                    $info[$k]['credit_level'] = $credit->getCreditNameById($v['credit_level'],$lang);
                 }
+                if(!empty($info[$k]['credit_type']) && is_numeric($info[$k]['credit_type'])){
+                    $info[$k]['credit_type'] = $credit->getCreditNameById($v['credit_type'],$lang);
+                }
+                //获取入网管理
+                $netInfo=$net->showNetSubject(array('buyer_id'=>$v['id']));
+                if(empty($netInfo)){    //arr
+                    $info[$k]['is_net']='N'; //是否入网
+                    $info[$k]['net_at']=''; //入网时间
+                    $info[$k]['net_invalid_at']=''; //失效时间
+                }elseif(!empty($netInfo['erui']['net_at'])){
+                    $info[$k]['is_net']='Y'; //是否入网
+                    $info[$k]['net_at']=$netInfo['erui']['net_at']; //入网时间
+                    $info[$k]['net_invalid_at']=$netInfo['erui']['net_invalid_at']; //失效时间
+                }else{
+                    $info[$k]['is_net']='Y'; //是否入网
+                    $info[$k]['net_at']=$netInfo['equipment']['net_at']; //入网时间
+                    $info[$k]['net_invalid_at']=$netInfo['equipment']['net_invalid_at']; //失效时间
+                }
+
+                //
+                //客户服务经理
+                $agentRes = $agentModel->getBuyerAgentFind($v['id']);
+                $info[$k]['market_agent']=$agentRes;
+                //访问
+                $visitRes = $visitModel->singleVisitInfo($v['id']);
+                $info[$k]['total_visit']=$visitRes['totalVisit'];
+                $info[$k]['week_visit']=$visitRes['week'];
+                $info[$k]['month_visit']=$visitRes['month'];
+                $info[$k]['quarter_visit']=$visitRes['quarter'];
+                //询报价
+                $inquiryRes = $inquiryModel->statisInquiry($v['id']);
+                $info[$k]['inquiry_count']=$inquiryRes['inquiry_count'];
+                $info[$k]['quote_count']=$inquiryRes['quote_count'];
+                $info[$k]['inquiry_account']=$inquiryRes['account'];
+                //订单
+                $orderRes = $orderModel->statisOrder($v['id']);
+                $info[$k]['order_count']=$orderRes['count'];
+                $info[$k]['order_account']=$orderRes['account'];
+                $info[$k]['min_range']=$orderRes['min'];
+                $info[$k]['max_range']=$orderRes['max'];
+                $info[$k]['mem_cate']=$orderRes['mem_cate'];
             }
-            $ids = array();
-            foreach($info as $k => $v){
-                $ids[$v['id']] = $v['id'];
-            }
-            $res = array(
-                'ids' => $ids,
-                'info' => $info,
-            );
-            $full = $this->exportBuyerListDataFull($res);
-            $need = $this->packageBuyerExcelData($full,$lang);
+//            print_r($info);die;
+//            $ids = array();
+//            foreach($info as $k => $v){
+//                $ids[$v['id']] = $v['id'];
+//            }
+//            $res = array(
+//                'ids' => $ids,
+//                'info' => $info,
+//            );
+//            $full = $this->exportBuyerListDataFull($res);
+            $need = $this->packageBuyerExcelData($info,$lang);
             if($excel==false){   //excel导出
                 return array('info'=>$need,'totalCount'=>$totalCount);
             }
