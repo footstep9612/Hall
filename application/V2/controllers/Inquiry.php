@@ -610,7 +610,6 @@ class InquiryController extends PublicController {
             'created_name' => 'created_by',
             'logi_agent_name' => 'logi_agent_id',
             'check_org_name' => 'check_org_id',
-          
             'logi_check_name' => 'logi_check_id',
             'obtain_name' => 'obtain_id']);
 
@@ -1161,13 +1160,11 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
-            $actions = isset($condition['action']) ? explode(',', $condition['action']) : '';
-            unset($condition['action']);
+
+
             $res = $inquiryCheckLogModel->getDetail($condition);
-		
-            if ($actions && !empty($res['action']) && !in_array($res['action'], $actions)) {
-                $res = [];
-            } elseif (empty($res)) {
+
+            if (empty($res)) {
                 $res = [];
             } elseif (!empty($res) && $res['agent_id'] != UID) {
                 $inquiry = (new InquiryModel())->where(['id' => $condition['inquiry_id']])->find();
@@ -1191,6 +1188,7 @@ class InquiryController extends PublicController {
                                             '';
                             break;
                         case 'BIZ_DISPATCHING'://事业部分单员
+                            echo 1;
                             $nowAgentIds = (new InquiryModel())
                                     ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['org_id']], ['in', [InquiryModel::inquiryIssueAuxiliaryRole,
                                     InquiryModel::quoteIssueAuxiliaryRole]], ['in', [InquiryModel::inquiryIssueRole,
@@ -1215,6 +1213,7 @@ class InquiryController extends PublicController {
                         case 'LOGI_DISPATCHING'://物流分单员
                             $nowAgentIds = (new InquiryModel())
                                     ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']]);
+
                             !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;
                         case 'LOGI_QUOTING'://物流报价

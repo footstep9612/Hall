@@ -1197,26 +1197,21 @@ class InquiryModel extends PublicModel {
 
         $employeeId = $this->getRoleUserId($groupId, $roleNo1, $orgNode);
 
-        $employeeIds = $countryUserModel->field('employee_id')->where(['employee_id' => ['in', $employeeId ?: ['-1']],
-                    'country_bn' => $country])->select();
-        if (!$employeeIds) {
-            $orgMemberModel = new OrgMemberModel();
-            $roleModel = new RoleModel();
-            $roleUserModel = new RoleUserModel();
-            $employeeModel = new EmployeeModel();
-            $orgId = $this->getDeptOrgId($groupId, $orgNode);
-            $roleId = $roleModel->where(['role_no' => $roleNo2, 'deleted_flag' => 'N'])->getField('id', true);
-            $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ?: ['-1']]])->getField('employee_id', true);
-            $employee_Ids = $employeeModel->where(['id' => ['in', $employeeId ?: ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
-            $employeeIds = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ?: ['-1']],
-                        'employee_id' => ['in', $employee_Ids ?: ['-1']]])->select();
-        }
-        $ret = [];
-        if ($employeeIds) {
-            foreach ($employeeIds as $item) {
-                $ret[] = $item['employee_id'];
-            }
-        }
+        $employeeIds = $countryUserModel->where(['employee_id' => ['in', $employeeId ?: ['-1']],
+                    'country_bn' => $country])->getField('employee_id', true);
+
+        $orgMemberModel = new OrgMemberModel();
+        $roleModel = new RoleModel();
+        $roleUserModel = new RoleUserModel();
+        $employeeModel = new EmployeeModel();
+        $orgId = $this->getDeptOrgId($groupId, $orgNode);
+        $roleId = $roleModel->where(['role_no' => $roleNo2, 'deleted_flag' => 'N'])->getField('id', true);
+        $employeeIds1 = $roleUserModel->where(['role_id' => ['in', $roleId ?: ['-1']]])->getField('employee_id', true);
+        $employee_Ids = $employeeModel->where(['id' => ['in', $employeeIds1 ?: ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
+        $employeeIds_1 = $orgMemberModel->where(['org_id' => ['in', $orgId ?: ['-1']],
+                    'employee_id' => ['in', $employee_Ids ?: ['-1']]])->getField('employee_id', true);
+
+        $ret = empty($employeeIds) ? $employeeIds_1 : (empty($employeeIds_1) ? $employeeIds : array_merge($employeeIds, $employeeIds_1));
 
         return $ret;
     }
