@@ -357,6 +357,17 @@ class EsProductModel extends Model {
         return $body;
     }
 
+
+    public function getStatics($condition)
+    {
+        $en = $this->getProducts($condition, null)[0]['hits']['total'];
+        $zh = $this->getProducts($condition, null, 'zh')[0]['hits']['total'];
+        $ru = $this->getProducts($condition, null, 'ru')[0]['hits']['total'];
+        $es = $this->getProducts($condition, null, 'es')[0]['hits']['total'];
+
+        return [$en, $zh, $ru, $es];
+    }
+
     /* 通过搜索条件获取数据列表
      * @param mix $condition // 搜索条件
      * @param string $lang // 语言
