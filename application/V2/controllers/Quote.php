@@ -400,7 +400,7 @@ class QuoteController extends PublicController {
         $op_note = !empty($request['op_note']) ? json_decode($request['op_note'], true) : null;
         $op_note_str = '';
         if (!empty($op_note)) {
-            $op_note_str = "reason:" . $op_note['reason'] . ",\r\nanalys:" . $op_note['analys'];
+            $op_note_str = $op_note['reason'] . ':' . $op_note['analys'];
         }
         $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], 'MARKET_CONFIRMING', $this->user, null, $action, $op_note_str), null, Rfq_CheckLogModel::$mError);
 
