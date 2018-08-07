@@ -184,6 +184,25 @@ class OrgModel extends PublicModel {
         }
     }
 
+    public function getChilds($org_id) {
+        $where = ['deleted_flag' => 'N'];
+
+        if ($org_id) {
+            $where = ['parent_id' => $org_id];
+        } else {
+            return null;
+        }
+        $count = $this
+                ->where($where)
+                ->count();
+
+        if ($count > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public function getCount($condition) {
         $where = ['deleted_flag' => 'N'];
         if (!empty($condition['org_node']) && is_string($condition['org_node'])) {
