@@ -1188,21 +1188,17 @@ class InquiryController extends PublicController {
                                             '';
                             break;
                         case 'BIZ_DISPATCHING'://事业部分单员
-                            echo 1;
-                            $nowAgentIds = (new InquiryModel())
-                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['org_id']], ['in', [InquiryModel::inquiryIssueAuxiliaryRole,
-                                    InquiryModel::quoteIssueAuxiliaryRole]], ['in', [InquiryModel::inquiryIssueRole,
-                                    InquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui', 'eub']]);
-
-                            !in_array(UID, $nowAgentIds) ? $res = [] : '';
+                            $permissions = (new InquiryModel())
+                                    ->getPermissions($condition['inquiry_id'], $inquiry['org_id'], [InquiryModel::inquiryIssueAuxiliaryRole,
+                                InquiryModel::quoteIssueAuxiliaryRole], [InquiryModel::inquiryIssueRole,
+                                InquiryModel::quoteIssueMainRole], ['in', ['ub', 'erui', 'eub']], $this->user);
+                            $permissions === false ? $res = [] : null;
                             break;
                         case 'CC_DISPATCHING'://易瑞客户中心
-                            $inquiry_model = new InquiryModel();
-                            $nowAgentIds = $inquiry_model
-                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['erui_id']], InquiryModel::inquiryIssueAuxiliaryRole, InquiryModel::inquiryIssueRole, 'erui');
+                            $permissions = (new InquiryModel())
+                                    ->getPermissions($condition['inquiry_id'], $inquiry['erui_id'], InquiryModel::inquiryIssueAuxiliaryRole, InquiryModel::inquiryIssueRole, 'erui', $this->user);
+                            $permissions === false ? $res = [] : null;
 
-
-                            !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;
                         case 'BIZ_QUOTING'://事业部报价
                             $inquiry['quote_id'] != UID ? $res = [] : '';
@@ -1211,10 +1207,9 @@ class InquiryController extends PublicController {
                             $inquiry['quote_id'] != UID ? $res = [] : '';
                             break;
                         case 'LOGI_DISPATCHING'://物流分单员
-                            $nowAgentIds = (new InquiryModel())
-                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']]);
-
-                            !in_array(UID, $nowAgentIds) ? $res = [] : '';
+                            $permissions = (new InquiryModel())
+                                    ->getPermissions($condition['inquiry_id'], $inquiry['logi_org_id'], InquiryModel::logiIssueAuxiliaryRole, InquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']], $this->user);
+                            $permissions === false ? $res = [] : null;
                             break;
                         case 'LOGI_QUOTING'://物流报价
                             $inquiry['logi_agent_id'] != UID ? $res = [] : '';
