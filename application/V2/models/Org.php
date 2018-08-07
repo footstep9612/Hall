@@ -197,13 +197,13 @@ class OrgModel extends PublicModel {
         return $count;
     }
 
-    public function setOrgName(&$arr, $key = 'org_id', $name = 'org_name') {
+    public function setOrgName(&$arr, $field_key = 'org_id', $field_name = 'org_name') {
         if ($arr) {
 
             $org_ids = [];
             foreach ($arr as $key => $val) {
-                if (isset($val[$key]) && $val[$key]) {
-                    $org_ids[] = $val[$key];
+                if (isset($val[$field_key]) && $val[$field_key]) {
+                    $org_ids[] = $val[$field_key];
                 }
             }
             $orgnames = [];
@@ -215,10 +215,10 @@ class OrgModel extends PublicModel {
                 }
             }
             foreach ($arr as $key => $val) {
-                if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
-                    $val[$name] = $orgnames[$val['org_id']];
+                if ($val[$field_key] && isset($orgnames[$val[$field_key]])) {
+                    $val[$field_name] = $orgnames[$val[$field_key]];
                 } else {
-                    $val[$name] = '';
+                    $val[$field_name] = '';
                 }
 
                 $arr[$key] = $val;

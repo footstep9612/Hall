@@ -441,6 +441,7 @@ class SupplierInquiryModel extends PublicModel {
 
         (new MaterialCatModel())->setMaterialCat($list, 'zh');
         (new OrgModel())->setOrgName($list, 'qt_org_id', 'qt_org_name');
+
         $this->_setCalculatePrice($list);
         $this->_setBizDespatching($list);
         $this->_setOilFlag($list);
