@@ -344,7 +344,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= 'if(i.proxy_flag=\'Y\',\'是\',\'否\') as proxy_flag,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,i.obtain_id,qt.supplier_id,qt.purchase_price_cur_bn,';
+        $field .= 'i.quote_deadline,i.obtain_id,qt.supplier_id,qt.purchase_price_cur_bn,it.material_cat_no,qt.org_id as qt_org_id,';
         $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
         $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
 
@@ -437,7 +437,11 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setSupplierName($list);
         $this->_setquoted_time($list);
         $this->_setProductName($list);
-        $this->_setMaterialCat($list, 'zh');
+
+
+        (new MaterialCatModel())->setMaterialCat($list, 'zh');
+        (new OrgModel())->setOrgName($list, 'qt_org_id', 'qt_org_name');
+
         $this->_setCalculatePrice($list);
         $this->_setBizDespatching($list);
         $this->_setOilFlag($list);
@@ -455,7 +459,7 @@ class SupplierInquiryModel extends PublicModel {
      */
 
     private function _getKeys() {
-        return json_decode('{"A":["sequence_no","序号"],"B":["serial_no","报价单号"],"C":["country_name","询价单位"],"D":["market_area_name","所属地区部"],"E":["org_name","事业部"],"F":["ie_erui","是否走易瑞"],"G":["buyer_code","客户名称或代码"],"H":["proxy_flag","是否代理商获取"],"I":["proxy_no","代理商代码"],"J":["project_basic_info","客户及项目背景描述"],"K":["name_zh","品名中文"],"L":["name","品名外文"],"M":["product_name","产品名称"],"N":["supplier_name","供应商"],"O":["model","规格"],"P":[null,"图号"],"Q":["qty","数量"],"R":["unit","单位"],"S":["buyer_oil","是否油气客户"],"T":["oil_flag","油气\/非油气"],"U":[null,"平台产品分类"],"V":["category","产品分类"],"W":["keruiflag","是否科瑞设备用配件"],"X":["bidflag","是否投标"],"Y":["created_at","新建询单日期"],"Z":["inflow_time","转入日期"],"AA":["quote_deadline","需用日期"],"AB":["max_inflow_time_out","最后一次流入事业部分单员时间"],"AC":["max_inflow_time","澄清完成日期"],"AD":["bq_time","事业部报出日期"],"AE":["ld_time","物流接收日期"],"AF":["la_time","物流报出日期"],"AG":["qs_time","报出日期"],"AH":["cc_dispatching_clarification_time","易瑞分单员发起的澄清用时（小时）"],"AI":["biz_dispatching_clarification_time","事业部分单员发起的澄清用时（小时）"],"AJ":["biz_quoting_clarification_time","事业部报价人发起的澄清用时（小时）"],"AK":["logi_dispatching_clarification_time","物流分单员发起的澄清用时（小时）"],"AL":["logi_quoting_clarification_time","物流报价人发起的澄清用时（小时）"],"AM":["logi_approving_clarification_time","物流审核发起的澄清用时（小时）"],"AN":["biz_approving_clarification_time","事业部核算发起的澄清用时（小时）"],"AO":["market_approving_clarification_time","事业部审核发起的澄清用时（小时）"],"AP":["clarification_time","项目澄清时间(小时)"],"AQ":["real_quoted_time","真实报价用时(去处澄清时间](小时)"],"AR":["whole_quoted_time","整体报价时间(小时)"],"AS":["cc_quoted_time","易瑞商务技术报价用时(小时)"],"AT":["biz_quoted_time","事业部商务技术报价用时(小时)"],"AU":["logi_quoted_time","物流报价时间(小时)"],"AV":["obtain_org_name","获单主体单位"],"AW":["obtain_name","获取人"],"AX":["created_by_name","询单创建人"],"AY":["agent_name","市场负责人"],"AZ":["biz_despatching","事业部分单人"],"BA":["quote_name","商务技术部报价人"],"BB":["check_org_name","事业部负责人"],"BC":["brand","产品品牌"],"BD":["supplier_name","报价单位"],"BE":[null,"供应商报价人"],"BF":[null,"报价人联系方式"],"BG":["purchase_unit_price","厂家单价"],"BH":["purchase_price_cur_bn","币种"],"BI":["total","厂家总价"],"BJ":["purchase_price_cur_bn","币种"],"BK":["gross_profit_rate","利润率"],"BL":["quote_unit_price","报价单价"],"BM":["quote_price_cur_bn","币种"],"BN":["total_exw_price","商务报出EXW价格合计"],"BO":["total_quote_price_cur_bn","币种"],"BP":["total_quoted_price_usd","商务技术报价"],"BQ":["gross_weight_kg","单重(kg]"],"BR":["total_kg","总重(kg)"],"BS":["package_size","包装体积(mm)"],"BT":["package_mode","包装方式"],"BU":["delivery_days","交货期（天）"],"BV":["period_of_validity","有效期（天）"],"BW":["trade_terms_bn","贸易术语"],"BX":["istatus","最新进度及解决方案"],"BY":["iquote_status","报价后状态"],"BZ":["quote_notes","备注"],"CA":["reason_for_no_quote","未报价分析"]}', true);
+        return json_decode('{"A":["sequence_no","序号"],"B":["serial_no","报价单号"],"C":["country_name","询价单位"],"D":["market_area_name","所属地区部"],"E":["org_name","事业部"],"F":["ie_erui","是否走易瑞"],"G":["buyer_code","客户名称或代码"],"H":["proxy_flag","是否代理商获取"],"I":["proxy_no","代理商代码"],"J":["project_basic_info","客户及项目背景描述"],"K":["name_zh","品名中文"],"L":["name","品名外文"],"M":["product_name","产品名称"],"N":["supplier_name","供应商"],"O":["model","规格"],"P":[null,"图号"],"Q":["qty","数量"],"R":["unit","单位"],"S":["buyer_oil","是否油气客户"],"T":["oil_flag","油气\/非油气"],"U":[null,"平台产品分类"],"V":["category","产品分类"],"W":["material_cat_name","物料分类"],"X":["qt_org_name","产品所属事业部"],"Y":["keruiflag","是否科瑞设备用配件"],"Z":["bidflag","是否投标"],"AA":["created_at","新建询单日期"],"AB":["inflow_time","转入日期"],"AC":["quote_deadline","需用日期"],"AD":["max_inflow_time_out","最后一次流入事业部分单员时间"],"AE":["max_inflow_time","澄清完成日期"],"AF":["bq_time","事业部报出日期"],"AG":["ld_time","物流接收日期"],"AH":["la_time","物流报出日期"],"AI":["qs_time","报出日期"],"AJ":["cc_dispatching_clarification_time","易瑞分单员发起的澄清用时（小时）"],"AK":["biz_dispatching_clarification_time","事业部分单员发起的澄清用时（小时）"],"AL":["biz_quoting_clarification_time","事业部报价人发起的澄清用时（小时）"],"AM":["logi_dispatching_clarification_time","物流分单员发起的澄清用时（小时）"],"AN":["logi_quoting_clarification_time","物流报价人发起的澄清用时（小时）"],"AO":["logi_approving_clarification_time","物流审核发起的澄清用时（小时）"],"AP":["biz_approving_clarification_time","事业部核算发起的澄清用时（小时）"],"AQ":["market_approving_clarification_time","事业部审核发起的澄清用时（小时）"],"AR":["clarification_time","项目澄清时间(小时)"],"AS":["real_quoted_time","真实报价用时(去处澄清时间](小时)"],"AT":["whole_quoted_time","整体报价时间(小时)"],"AU":["cc_quoted_time","易瑞商务技术报价用时(小时)"],"AV":["biz_quoted_time","事业部商务技术报价用时(小时)"],"AW":["logi_quoted_time","物流报价时间(小时)"],"AX":["obtain_org_name","获单主体单位"],"AY":["obtain_name","获取人"],"AZ":["created_by_name","询单创建人"],"BA":["agent_name","市场负责人"],"BB":["biz_despatching","事业部分单人"],"BC":["quote_name","商务技术部报价人"],"BD":["check_org_name","事业部负责人"],"BE":["brand","产品品牌"],"BF":["supplier_name","报价单位"],"BG":[null,"供应商报价人"],"BH":[null,"报价人联系方式"],"BI":["purchase_unit_price","厂家单价"],"BJ":["purchase_price_cur_bn","币种"],"BK":["total","厂家总价"],"BL":["purchase_price_cur_bn","币种"],"BM":["gross_profit_rate","利润率"],"BN":["quote_unit_price","报价单价"],"BO":["quote_price_cur_bn","币种"],"BP":["total_exw_price","商务报出EXW价格合计"],"BQ":["total_quote_price_cur_bn","币种"],"BR":["total_quoted_price_usd","商务技术报价"],"BS":["gross_weight_kg","单重(kg]"],"BT":["total_kg","总重(kg)"],"BU":["package_size","包装体积(mm)"],"BV":["package_mode","包装方式"],"BW":["delivery_days","交货期（天）"],"BX":["period_of_validity","有效期（天）"],"BY":["trade_terms_bn","贸易术语"],"BZ":["istatus","最新进度及解决方案"],"CA":["iquote_status","报价后状态"],"CB":["quote_notes","备注"],"CC":["reason_for_no_quote","未报价分析"]}', true);
     }
 
     private function _createXls($list, $name = '导出的询报价单') {
@@ -585,7 +589,7 @@ class SupplierInquiryModel extends PublicModel {
         foreach ($list as $key => $item) {
             if (!empty($item['sku']) && isset($product_names[$item['sku']])) {
                 $list[$key]['product_name'] = $product_names[$item['sku']]['product_name'];
-                $list[$key]['material_cat_no'] = $product_names[$item['sku']]['material_cat_no'];
+                // $list[$key]['material_cat_no'] = $product_names[$item['sku']]['material_cat_no'];
             }
         }
     }
@@ -939,6 +943,8 @@ class SupplierInquiryModel extends PublicModel {
                 $tmpList[$serialNo]['total_kg'] = $item['total_kg'];
                 $tmpList[$serialNo]['package_size'] = $item['package_size'];
                 $tmpList[$serialNo]['package_mode'] = '';
+                $tmpList[$serialNo]['material_cat_name'] = '';
+                $tmpList[$serialNo]['qt_org_name'] = '';
             } else {
 
                 $tmpList[$serialNo]['total_kg'] += $item['total_kg'];
@@ -1147,36 +1153,6 @@ class SupplierInquiryModel extends PublicModel {
                     $val['oil_flag'] = '';
                 }
 
-                $arr[$key] = $val;
-            }
-        }
-    }
-
-    /*
-     * Description of 获取物料分类名称
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
-
-    private function _setMaterialCat(&$arr, $lang) {
-        if ($arr) {
-            $material_cat_model = new MaterialCatModel();
-            $catnos = [];
-            foreach ($arr as $key => $val) {
-                if (!empty($val['material_cat_no'])) {
-                    $catnos[] = $val['material_cat_no'];
-                }
-            }
-            $catnames = $material_cat_model->getNameByCatNos($catnos, $lang);
-            foreach ($arr as $key => $val) {
-                if ($val['category'] && !empty($val['material_cat_no']) && !empty($catnames[$val['material_cat_no']])) {
-                    $val['material_cat_name'] = $catnames[$val['material_cat_no']];
-                } else {
-                    $val['material_cat_name'] = '';
-                }
                 $arr[$key] = $val;
             }
         }
