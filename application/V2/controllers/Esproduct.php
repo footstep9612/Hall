@@ -112,6 +112,9 @@ class EsproductController extends PublicController {
 
         $this->_handleCondition($condition);
         $ret = $model->getProducts($condition, null, $lang);
+
+        list($en_count, $zh_count, $ru_count, $es_count) = $model->getStatics($condition);
+
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data, $lang);
@@ -150,6 +153,12 @@ class EsproductController extends PublicController {
             $condition['deleted_flag'] = 'Y';
             $condition['onshelf_flag'] = 'A';
             //  $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
+
+            $send['en_count'] = $en_count;
+            $send['zh_count'] = $zh_count;
+            $send['ru_count'] = $ru_count;
+            $send['es_count'] = $es_count;
+
             $send['data'] = $list;
 
             $this->setCode(MSG::MSG_SUCCESS);
