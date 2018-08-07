@@ -280,7 +280,7 @@ class ProductModel extends PublicModel {
                     if (empty($data['material_cat_no'])) {
                         $data['material_cat_no'] = $material_cat_no;
                     }
-//严重展示名称必须包含产品名称
+                    //严重展示名称必须包含产品名称
                     if (!empty($data['show_name'])) {
                         if (!strstr($data['show_name'], $data['name'])) {
                             $this->rollback();
@@ -289,6 +289,9 @@ class ProductModel extends PublicModel {
                             jsonReturn('', ErrorMsg::FAILED, '展示名称必须包含产品名称');
                         }
                     }
+
+                    $data['brand'] = $this->getBrand($input[$lang]['brand'],$lang);
+
                     $data['bizline_id'] = $bizline_id;
                     $this->checkParam($data, $this->field);     //字段校验
                     if ($lang == 'en') {
@@ -330,13 +333,13 @@ class ProductModel extends PublicModel {
                         }
                     }
 
-//非暂存进行下校验
-//if ($item['status'] != 'DRAFT') {
+                    //非暂存进行下校验
+                    //if ($item['status'] != 'DRAFT') {
                     $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                         'lang' => $lang,
                         'name' => $data['name'],
                         //'material_cat_no' => $data['material_cat_no'],
-//'brand' => $data['brand'],
+                        //'brand' => $data['brand'],
                         'deleted_flag' => 'N',
                             //'status' => array('neq', 'DRAFT')
                     );
@@ -363,7 +366,7 @@ class ProductModel extends PublicModel {
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
                         $data['deleted_flag'] = 'N';
-//$result = $this->where(array('spu' => $spu, 'lang' => $lang))->save($data);
+                        //$result = $this->where(array('spu' => $spu, 'lang' => $lang))->save($data);
                         $result = $this->where(array('id' => $exist_check['id']))->save($data);
                         if (!$result) {
                             $this->rollback();
@@ -444,6 +447,24 @@ class ProductModel extends PublicModel {
             flock($fp, LOCK_UN);
         }
         fclose($fp);
+    }
+
+
+    public function getBrand($id, $lang)
+    {
+        $brand_json = (new BrandModel)->where([
+            'deleted_flag' => 'N',
+            'status' => 'VALID',
+            'id' => $id
+        ])->find();
+
+        $brands = json_decode($brand_json['brand'], true);
+
+        foreach ($brands as $brand) {
+            if ($brand['lang'] == $lang) {
+                return json_encode($brand);
+            }
+        }
     }
 
     /**
