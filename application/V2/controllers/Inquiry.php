@@ -724,6 +724,13 @@ class InquiryController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage($this->lang == 'en' ? 'Please choose the business department By Erui!' : '请选择易瑞下的事业部!');
             $this->jsonReturn();
+        } elseif (!empty($data['org_id']) && $data['org_id'] != 'ERUI') {
+            $childs_id = (new OrgModel())->getChilds($data['org_id']);
+            if ($childs_id) {
+                $this->setCode(MSG::ERROR_PARAM);
+                $this->setMessage('请选择二级事业部!');
+                $this->jsonReturn();
+            }
         }
         if ($data['status'] == 'BIZ_DISPATCHING') {
             $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
