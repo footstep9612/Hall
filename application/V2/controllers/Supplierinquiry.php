@@ -130,7 +130,7 @@ class SupplierinquiryController extends PublicController {
         }
     }
 
-      /*     * **********----导出询单列表----****************
+    /*     * **********----导出询单列表----****************
      * |supplier_id|是|string|供应商id|
      * |current_no |否  |int    |当前页(默认1)|
      * |pagesize |否	|int	|每页显示条数|
@@ -147,31 +147,31 @@ class SupplierinquiryController extends PublicController {
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         // 导出多少天以内的数据
-//        $inquiryModel = new InquiryModel();
-//        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
+        $inquiryModel = new InquiryModel();
+        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
         $where = ['i.deleted_flag' => 'N',
             'i.status' => ['neq', 'DRAFT'],
         ];
-        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-            $created_at_start = trim($condition['created_at_start']);
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
-        } elseif (!empty($condition['created_at_start'])) {
-
-            $created_at_start = trim($condition['created_at_start']);
-            $where['i.created_at'] = ['egt', $created_at_start];
-        } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['elt', $created_at_end];
-        }
-        if (!empty($condition['country_bn'])) {
-            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
-        }
-//        if (!empty($inquiry_ids)) {
-//            $where['i.id'] = ['in', $inquiry_ids];
-//        } else {
-//            $where['i.id'] = -1;
+//        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+//            $created_at_start = trim($condition['created_at_start']);
+//            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+//            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+//        } elseif (!empty($condition['created_at_start'])) {
+//
+//            $created_at_start = trim($condition['created_at_start']);
+//            $where['i.created_at'] = ['egt', $created_at_start];
+//        } elseif (!empty($condition['created_at_end'])) {
+//            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+//            $where['i.created_at'] = ['elt', $created_at_end];
 //        }
+//        if (!empty($condition['country_bn'])) {
+//            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
+//        }
+        if (!empty($inquiry_ids)) {
+            $where['i.id'] = ['in', $inquiry_ids];
+        } else {
+            $where['i.id'] = -1;
+        }
 
 
         $data = $supplier_inquiry_model->Inquiryexport($where);

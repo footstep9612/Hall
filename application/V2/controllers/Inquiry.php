@@ -11,62 +11,8 @@ class InquiryController extends PublicController {
 
     public function init() {
         parent::init();
-
         $this->put_data = dataTrim($this->put_data);
     }
-
-    /**
-     * 验证用户权限
-     * Author:张玉良
-     * @return string
-     */
-    /* public function checkAuthAction() {
-      $groupid = $this->user['group_id'];
-      if (isset($groupid)) {
-      $maketareateam = new MarketAreaTeamModel();
-      $users = [];
-
-      if(is_array($groupid)){
-      //查询是否方案中心，下面有多少市场人员
-      $users = $maketareateam->alias('a')
-      ->field('b.employee_id')
-      ->join('`erui_sys`.`org_member` b on a.market_org_id = b.org_id')
-      ->where('a.biz_tech_org_id in('.implode(',',$groupid).')')
-      ->select();
-
-      //查询是否是市场人员
-      $agent = $maketareateam->where('market_org_id in('.implode(',',$groupid).')')->count('id');
-      }else{
-      //查询是否方案中心，下面有多少市场人员
-      $users = $maketareateam->alias('a')
-      ->field('b.employee_id')
-      ->join('`erui_sys`.`org_member` b on a.market_org_id = b.org_id')
-      ->where('a.biz_tech_org_id='.$groupid)
-      ->select();
-
-      //查询是否是市场人员
-      $agent = $maketareateam->where('market_org_id='.$groupid)->count('id');
-      }
-
-      if (!empty($users)) {
-      array_unique($users);
-      $results['code'] = '1';
-      $results['message'] = '方案中心！';
-      $results['data'] = $users;
-      } else if ($agent>0) {
-      $results['code'] = '2';
-      $results['message'] = '市场人员！';
-      } else {
-      $results['code'] = '3';
-      $results['message'] = '其他人员！';
-      }
-      } else {
-      $results['code'] = '-101';
-      $results['message'] = '用户没有权限此操作！';
-      }
-
-      return $results;
-      } */
 
     /*
      * 返回询价单流程编码
@@ -108,93 +54,6 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    /*
-     * 询价单列表
-     * Author:张玉良
-     */
-
-    /* public function getListAction() {
-      $auth = $this->checkAuthAction();
-      //判断是否有权限访问
-      if ($auth['code'] == '-101') {
-      $this->jsonReturn($auth);
-      }
-
-      $inquiry = new InquiryModel();
-      $employee = new EmployeeModel();
-      $country = new CountryModel();
-      $where = $this->put_data;
-
-      $where['agent_id'] = [];   //经办人为自己
-      //如果有方案中心权限
-      if ($auth['code'] == 1) {
-      foreach ($auth['data'] as $epl) {
-      $where['agent_id'][] = $epl['employee_id'];
-      }
-      }
-
-      //如果搜索条件有经办人，转换成id
-      if (!empty($where['agent_name'])) {
-      $agent = $employee->field('id')->where('name="' . $where['agent_name'] . '"')->find();
-
-      if (in_array($agent['id'], $where['agent_id']) || $agent['id'] == $this->user['id']) {
-      $where['agent_id'] = [];
-      $where['agent_id'][] = $agent['id'];
-      } else {
-      $results['code'] = '-101';
-      $results['message'] = '没有找到相关信息！';
-      $this->jsonReturn($results);
-      }
-      }else{
-      $where['user_id'] = $this->user['id'];
-      }
-      //如果搜索条件有项目经理，转换成id
-      if (!empty($where['pm_name'])) {
-      $pm = $employee->field('id')->where('name="' . $where['pm_name'] . '"')->find();
-      if ($pm) {
-      $where['pm_id'] = $pm['id'];
-      } else {
-      $results['code'] = '-101';
-      $results['message'] = '没有找到相关信息！';
-      $this->jsonReturn($results);
-      }
-      }
-
-      $results = $inquiry->getList($where);
-
-      //把经办人和项目经理转换成名称显示
-      if ($results['code'] == '1') {
-      $buyer = new BuyerModel();
-      foreach ($results['data'] as $key => $val) {
-      //经办人
-      if (!empty($val['agent_id'])) {
-      $rs1 = $employee->field('name')->where('id=' . $val['agent_id'])->find();
-      $results['data'][$key]['agent_name'] = $rs1['name'];
-      }
-      //项目经理
-      if (!empty($val['pm_id'])) {
-      $rs2 = $employee->field('name')->where('id=' . $val['pm_id'])->find();
-      $results['data'][$key]['pm_name'] = $rs2['name'];
-      }
-      //国家
-      if (!empty($val['country_bn'])) {
-      $rs3 = $country->field('name')->where("lang='zh' and bn='" . $val['country_bn'] . "'")->find();
-      $results['data'][$key]['country_name'] = $rs3['name'];
-      }
-      //区域
-      if(!empty($val['buyer_id'])){
-      $rs4 = $buyer->field('area_bn')->where("id=" . $val['buyer_id'])->find();
-      $results['data'][$key]['area_bn'] = $rs3['area_bn'];
-      }
-      }
-
-      //权限
-      $results['auth'] = $auth['code'];
-      }
-
-      $this->jsonReturn($results);
-      } */
-
     /**
      * @desc 询价单列表
      *
@@ -225,14 +84,14 @@ class InquiryController extends PublicController {
             $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ?: [];
         }
 // 报价人
-        if ($condition['quote_name'] != '') {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ?: [];
-        }
+
+        $condition['quote_name'] != '' ? $condition['quote_id'] = ($employeeModel->getUserIdByName($condition['quote_name']) ?: []) : null;
+
 
 // 销售合同号
-        if ($condition['contract_no'] != '') {
-            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo();
-        }
+
+        $condition['contract_no'] != '' ? $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo() : null;
+
 
 // 当前用户的所有角色编号
         $condition['role_no'] = $this->user['role_no'];
@@ -248,20 +107,13 @@ class InquiryController extends PublicController {
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
         $marketAreaModel->setArea($inquiryList);
-        $this->_setUserName($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
-            'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
+        (new EmployeeModel)->setUserNames($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id', 'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
         $this->_setBuyerNo($inquiryList);
         $this->_setLogiQuoteFlag($inquiryList);
         $this->_setOrgName($inquiryList);
         $this->_setTransModeName($inquiryList);
         $this->_setContractNo($inquiryList);
-//        foreach ($inquiryList as &$inquiry) {
-//            $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
-//            $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
-//            $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
-//            $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
-//            $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
-//        }
+
 
         if ($inquiryList) {
             $res['code'] = 1;
@@ -294,7 +146,7 @@ class InquiryController extends PublicController {
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
         $marketAreaModel->setArea($inquiryList);
-        $this->_setUserName($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
+        (new EmployeeModel)->setUserNames($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
             'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
         $this->_setBuyerNo($inquiryList);
         $this->_setLogiQuoteFlag($inquiryList);
@@ -336,7 +188,13 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
 
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
+
 
             $this->jsonReturn($res);
         } else {
@@ -357,9 +215,7 @@ class InquiryController extends PublicController {
         $org_model = new OrgModel();
 
         $data = $inquiryModel->getUserRoleByNo($this->user['role_no']);
-//        if ($data['is_erui'] == 'N' && !empty($this->user['group_id'])) {
-//            $data['is_erui'] = $org_model->getIsEruiById(['in', $this->user['group_id']]);
-//        }
+
         if ($data['is_agent'] == 'Y') {
 //
 //
@@ -416,7 +272,12 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
 
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
 
             $this->jsonReturn($res);
         } else {
@@ -448,7 +309,13 @@ class InquiryController extends PublicController {
                 'updated_by' => $this->user['id']
             ];
 
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+            $op_note = !empty($condition['op_note']) ? $condition['op_note'] : '';
+            $in_node = !empty($condition['in_node']) ? $condition['in_node'] : null;
+            $this->rollback($this->inquiryModel, Rfq_CheckLogModel::addCheckLog($condition['inquiry_id'], 'REJECT_CLOSE', $this->user, $in_node, 'REJECT', $op_note), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
 
             $this->jsonReturn($res);
         } else {
@@ -485,37 +352,28 @@ class InquiryController extends PublicController {
             ];
 
             $res1 = $inquiryModel->updateData($data);
-
+            $this->rollback($inquiryModel, null, $res1);
 // 更改报价单状态
             $quoteData = [
                 'status' => 'BIZ_QUOTING',
                 'updated_by' => $this->user['id'],
-                'updated_at' => $this->time
+                'updated_at' => date('Y-m-d H:i:s')
             ];
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 
-
+            $this->rollback($inquiryModel, $res2);
 
 // 更改市场报价单状态
             $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
-
-            if ($res1['code'] == 1 && $res2 !== false && $res3['code'] == 1) {
-                $inquiryModel->commit();
-                $res = true;
-            } else {
-                $inquiryModel->rollback();
-                $res = false;
-            }
-
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage(L('SUCCESS'));
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage(L('FAIL'));
-                $this->jsonReturn();
-            }
+            $this->rollback($inquiryModel, null, $res3);
+            $op_note = !empty($condition['op_note']) ? $condition['op_note'] : '';
+            $in_node = !empty($condition['in_node']) ? $condition['in_node'] : null;
+            $flag = Rfq_CheckLogModel::addCheckLog($condition['inquiry_id'], 'BIZ_QUOTING', $this->user, $in_node, 'REJECT', $op_note);
+            $this->rollback($this->inquiryModel, $flag);
+            $inquiryModel->commit();
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn($res1);
         } else {
             $this->setCode('-103');
             $this->setMessage(L('MISSING_PARAMETER'));
@@ -534,27 +392,31 @@ class InquiryController extends PublicController {
 
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
+            $op_note = !empty($condition['op_note']) ? $condition['op_note'] : '';
+            $in_node = !empty($condition['in_node']) ? $condition['in_node'] : null;
+            $inquiry = $inquiryModel->where(['id' => $condition['inquiry_id']])->field('agent_id,status')->find();
 
-            $agentId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
+            if (!empty($inquiry) && $inquiry['status'] == 'CLARIFY') {
+                jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
+            } elseif (empty($inquiry)) {
+                jsonReturn('', '-101', L('INQUIRY_NO_DATA'));
+            }
 
             $data = [
                 'id' => $condition['inquiry_id'],
-                'now_agent_id' => $agentId,
+                'now_agent_id' => $inquiry['agent_id'],
                 'status' => 'CLARIFY',
                 'updated_by' => $this->user['id']
             ];
-
+            $inquiryModel->startTrans();
             $res = $inquiryModel->updateData($data);
+            $this->rollback($inquiryModel, null, $res);
+            $this->rollback($inquiryModel, Rfq_CheckLogModel::addCheckLog($condition['inquiry_id'], 'CLARIFY', $this->user, $in_node, 'CLARIFY', $op_note), null, Rfq_CheckLogModel::$mError);
+            $inquiryModel->commit();
 
-            if ($res) {
-                $this->setCode('1');
-                $this->setMessage(L('SUCCESS'));
-                $this->jsonReturn($res);
-            } else {
-                $this->setCode('-101');
-                $this->setMessage(L('FAIL'));
-                $this->jsonReturn();
-            }
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
             $this->setMessage(L('MISSING_PARAMETER'));
@@ -612,11 +474,13 @@ class InquiryController extends PublicController {
                     default :
                         $error = true;
                 }
-            } else
+            } else {
                 $error = true;
+            }
 
-            if ($error)
+            if ($error) {
                 jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
+            }
 
             $inquiryModel->startTrans();
 
@@ -731,7 +595,6 @@ class InquiryController extends PublicController {
         $results = $inquiry->getInfo($where);
         $org_id = $results['data']['org_id'];
         $results['data']['org_parent_id'] = '';
-
         if ($org_id) {
             $results['data']['org_parent_id'] = $org->getParentid($org_id);
         }
@@ -739,41 +602,20 @@ class InquiryController extends PublicController {
         if (!empty($results['data']['buyer_id'])) {
             $results['data']['buyer_no'] = $buyerModel->where(['id' => $results['data']['buyer_id']])->getField('buyer_no');
         }
-//经办人
-        if (!empty($results['data']['agent_id'])) {
-            $results['data']['agent_name'] = $employee->getUserNameById($results['data']['agent_id']);
-        }
-//客户中心分单员
-        if (!empty($results['data']['erui_id'])) {
-            $results['data']['erui_name'] = $employee->getUserNameById($results['data']['erui_id']);
-        }
-//询单创建人
-        if (!empty($results['data']['created_by'])) {
-            $results['data']['created_name'] = $employee->getUserNameById($results['data']['created_by']);
-        }
-//事业部报价人
-        if (!empty($results['data']['quote_id'])) {
-            $results['data']['quote_name'] = $employee->getUserNameById($results['data']['quote_id']);
-        }
+
+        $employee->setUserName($results['data'], [
+            'agent_name' => 'agent_id',
+            'quote_name' => 'quote_id',
+            'current_name' => 'now_agent_id',
+            'created_name' => 'created_by',
+            'logi_agent_name' => 'logi_agent_id',
+            'check_org_name' => 'check_org_id',
+            'logi_check_name' => 'logi_check_id',
+            'obtain_name' => 'obtain_id']);
+
 //事业部
         if (!empty($results['data']['org_id'])) {
             $results['data']['org_name'] = $org->where(['id' => $results['data']['org_id'], 'deleted_flag' => 'N'])->getField('name');
-        }
-//事业部审核人
-        if (!empty($results['data']['check_org_id'])) {
-            $results['data']['check_org_name'] = $employee->getUserNameById($results['data']['check_org_id']);
-        }
-//物流报价人
-        if (!empty($results['data']['logi_agent_id'])) {
-            $results['data']['logi_agent_name'] = $employee->getUserNameById($results['data']['logi_agent_id']);
-        }
-//物流审核人
-        if (!empty($results['data']['logi_check_id'])) {
-            $results['data']['logi_check_name'] = $employee->getUserNameById($results['data']['logi_check_id']);
-        }
-//当前办理人
-        if (!empty($results['data']['now_agent_id'])) {
-            $results['data']['current_name'] = $employee->getUserNameById($results['data']['now_agent_id']);
         }
 //询单所在国家
         if (!empty($results['data']['country_bn'])) {
@@ -784,9 +626,8 @@ class InquiryController extends PublicController {
             $results['data']['area_name'] = $marketAreaModel->getAreaNameByBn($results['data']['area_bn'], $this->lang);
         }
 //项目获取人
-        if (!empty($results['data']['obtain_id'])) {
-            $results['data']['obtain_name'] = $employee->getUserNameById($results['data']['obtain_id']);
-        }
+        $employee->setCitizenship($results['data']);
+
 //起运国
         if (!empty($results['data']['from_country'])) {
             $results['data']['from_country_name'] = $countryModel->getCountryNameByBn($results['data']['from_country'], $this->lang);
@@ -887,8 +728,11 @@ class InquiryController extends PublicController {
         if ($data['status'] == 'BIZ_DISPATCHING') {
             $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         }
-
+        $inquiry->startTrans();
         $results = $inquiry->updateStatus($data);
+        $this->rollback($inquiry, null, $results);
+        $this->rollback($inquiry, Rfq_CheckLogModel::addCheckLog($data['id'], $data['status'], $this->user), null, Rfq_CheckLogModel::$mError);
+        $inquiry->commit();
         $this->jsonReturn($results);
     }
 
@@ -1316,14 +1160,11 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
-            $actions = isset($condition['action']) ? explode(',', $condition['action']) : '';
-            unset($condition['action']);
+
+
             $res = $inquiryCheckLogModel->getDetail($condition);
 
-
-            if ($actions && !empty($res['action']) && !in_array($res['action'], $actions)) {
-                $res = [];
-            } elseif (empty($res)) {
+            if (empty($res)) {
                 $res = [];
             } elseif (!empty($res) && $res['agent_id'] != UID) {
                 $inquiry = (new InquiryModel())->where(['id' => $condition['inquiry_id']])->find();
@@ -1347,6 +1188,7 @@ class InquiryController extends PublicController {
                                             '';
                             break;
                         case 'BIZ_DISPATCHING'://事业部分单员
+                            echo 1;
                             $nowAgentIds = (new InquiryModel())
                                     ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['org_id']], ['in', [InquiryModel::inquiryIssueAuxiliaryRole,
                                     InquiryModel::quoteIssueAuxiliaryRole]], ['in', [InquiryModel::inquiryIssueRole,
@@ -1370,7 +1212,7 @@ class InquiryController extends PublicController {
                             break;
                         case 'LOGI_DISPATCHING'://物流分单员
                             $nowAgentIds = (new InquiryModel())
-                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryMode::logiIssueMainRole, ['in', ['lg', 'elg']]);
+                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']]);
 
                             !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;
@@ -1426,48 +1268,20 @@ class InquiryController extends PublicController {
             $data = [];
             foreach ($type as $val) {
                 if ($val == 1) {//所有市场群组
-                    $list = $marketareateam->field('market_org_id')->group('market_org_id')->select();
-                    if ($list) {
-                        foreach ($list as $lt) {
-                            if (!empty($lt['market_org_id'])) {
-                                $test1[] = $lt['market_org_id'];
-                            }
-                        }
-                        $data['market_org'] = implode(',', $test1);
-                    }
+                    $market_org_ids = $marketareateam->field('market_org_id')->group('market_org_id')->getField('market_org_id', true);
+                    !empty($market_org_ids) ? $data['market_org'] = implode(',', $market_org_ids) : null;
                 }
                 if ($val == 2) {//所有方案中心群组
-                    $list = $marketareateam->field('biz_tech_org_id')->group('biz_tech_org_id')->select();
-                    if ($list) {
-                        foreach ($list as $lt) {
-                            if (!empty($lt['biz_tech_org_id'])) {
-                                $test2[] = $lt['biz_tech_org_id'];
-                            }
-                        }
-                        $data['biz_tech_org'] = implode(',', $test2);
-                    }
+                    $biz_tech_org_ids = $marketareateam->group('biz_tech_org_id')->getField('biz_tech_org_id', true);
+                    !empty($biz_tech_org_ids) ? $data['biz_tech_org'] = implode(',', $biz_tech_org_ids) : null;
                 }
                 if ($val == 3) {//所有产品线群组
-                    $list = $bizlinegroup->field('group_id')->group('group_id')->select();
-                    if ($list) {
-                        foreach ($list as $lt) {
-                            if (!empty($lt['group_id'])) {
-                                $test3[] = $lt['group_id'];
-                            }
-                        }
-                        $data['biz_group_org'] = implode(',', $test3);
-                    }
+                    $group_ids = $bizlinegroup->group('group_id')->getField('group_id', true);
+                    !empty($group_ids) ? $data['biz_group_org'] = implode(',', $group_ids) : null;
                 }
                 if ($val == 4) {//所有物流报价群组
-                    $list = $marketareateam->field('logi_quote_org_id')->group('logi_quote_org_id')->select();
-                    if ($list) {
-                        foreach ($list as $lt) {
-                            if (!empty($lt['logi_quote_org_id'])) {
-                                $test4[] = $lt['logi_quote_org_id'];
-                            }
-                        }
-                        $data['logi_quote_org'] = implode(',', $test4);
-                    }
+                    $logi_quote_org_ids = $marketareateam->field('logi_quote_org_id')->group('logi_quote_org_id')->getField('logi_quote_org_id', true);
+                    !empty($logi_quote_org_ids) ? $data['biz_group_org'] = implode(',', $logi_quote_org_ids) : null;
                 }
             }
 
@@ -1579,40 +1393,6 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $results = $attach->addData($data);
         $this->jsonReturn($results);
-    }
-
-    /*
-     * Description of 获取创建人姓名
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
-
-    private function _setUserName(&$arr, $fileds) {
-        if ($arr) {
-            $employee_model = new EmployeeModel();
-            $userids = [];
-            foreach ($arr as $key => $val) {
-                foreach ($fileds as $filed) {
-                    if (isset($val[$filed]) && $val[$filed]) {
-                        $userids[] = $val[$filed];
-                    }
-                }
-            }
-            $usernames = $employee_model->getUserNamesByUserids($userids);
-            foreach ($arr as $key => $val) {
-                foreach ($fileds as $filed_key => $filed) {
-                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
-                        $val[$filed_key] = $usernames[$val[$filed]];
-                    } else {
-                        $val[$filed_key] = '';
-                    }
-                }
-                $arr[$key] = $val;
-            }
-        }
     }
 
     /*
@@ -1828,6 +1608,27 @@ class InquiryController extends PublicController {
         } else {
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 回滚判断
+     */
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
             $this->jsonReturn();
         }
     }
