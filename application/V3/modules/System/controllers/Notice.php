@@ -24,9 +24,19 @@ class NoticeController extends PublicController {
             $condtion = $this->getPut();
             $condtion['lang'] = $this->getPut('lang', 'zh');
         }
-        $notice_model = new System_NoticeModel();
-        $data = $notice_model->getList($condtion);
 
+        if (isset($condtion['token'])) {
+            unset($condtion['token']);
+        }
+
+        $key = md5(http_build_query($condtion));
+        if (redisHashExist('notice', $key)) {
+            $data = json_decode(redisHashGet('notice', $key), true);
+        } else {
+            $notice_model = new System_NoticeModel();
+            $data = $notice_model->getList($condtion);
+            redisHashSet('notice', $key, json_encode($data));
+        }
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',

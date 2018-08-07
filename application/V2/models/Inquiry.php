@@ -838,7 +838,7 @@ class InquiryModel extends PublicModel {
             return $results;
         }
 
-        if (empty($data['org_id'])) {
+        if (isset($data['org_id']) && empty($data['org_id'])) {
             $data['org_id'] = null;
         }
         $time = $this->getTime();
