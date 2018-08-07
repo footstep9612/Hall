@@ -30,7 +30,7 @@ class OrgModel extends PublicModel {
      * @version V2.0
      * @desc   组织
      */
-    public function getNameById($id, $lang) {
+    public function getNameById($id, $lang = 'zh') {
         if (!$id) {
             return '';
         }
