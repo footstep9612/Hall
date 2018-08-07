@@ -11,15 +11,22 @@ class BuyervisitController extends PublicController {
     public function init() {
         parent::init();
     }
-    private function crmUserRole($user_id,$access){ //获取角色
-        $role=new RoleUserModel();
-        $arr=$role->crmGetUserRole($user_id);
-        if(in_array($access,$arr)){
-            $admin=1;   //市场专员
-        }else{
-            $admin=0;
-        }
-        return $admin;
+//    private function crmUserRole($user_id,$access){ //获取角色
+//        $role=new RoleUserModel();
+//        $arr=$role->crmGetUserRole($user_id);
+//        if(in_array($access,$arr)){
+//            $admin=1;   //市场专员
+//        }else{
+//            $admin=0;
+//        }
+//        return $admin;
+//    }
+    public function getUserRole(){
+        $arr=[];
+        $data=$this->user;
+        $arr['role']=$data['role_no'];
+        $arr['country']=$data['country_bn'];
+        return $arr;
     }
     /**
      * Description of 列表
@@ -247,32 +254,32 @@ class BuyervisitController extends PublicController {
         $this->jsonReturn($dataJson);
     }
     //获取用户的角色
-    public function getUserRole(){
-        $config = \Yaf_Application::app()->getConfig();
-        $ssoServer=$config['ssoServer'];
-        $token=$_COOKIE['eruitoken'];
-        $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Content-Type: application/json\r\n" .
-                    "Cookie: ".$_COOKIE."\r\n",
-                'content' =>json_encode(array('token'=>$token))
-
-            )
-        );
-        $context = stream_context_create($opt);
-        $json = file_get_contents($ssoServer,false,$context);
-        $info=json_decode($json,true);
-
-        $arr['role']=$info['role_no'];
-        if(!empty($info['country_bn'])){
-            $countryArr=[];
-            foreach($info['country_bn'] as $k => $v){
-                $countryArr[]="'".$v."'";
-            }
-            $countryStr=implode(',',$countryArr);
-        }
-        $arr['country']=$countryStr;
-        return $arr;
-    }
+//    public function getUserRole(){
+//        $config = \Yaf_Application::app()->getConfig();
+//        $ssoServer=$config['ssoServer'];
+//        $token=$_COOKIE['eruitoken'];
+//        $opt = array(
+//            'http'=>array(
+//                'method'=>"POST",
+//                'header'=>"Content-Type: application/json\r\n" .
+//                    "Cookie: ".$_COOKIE."\r\n",
+//                'content' =>json_encode(array('token'=>$token))
+//
+//            )
+//        );
+//        $context = stream_context_create($opt);
+//        $json = file_get_contents($ssoServer,false,$context);
+//        $info=json_decode($json,true);
+//
+//        $arr['role']=$info['role_no'];
+//        if(!empty($info['country_bn'])){
+//            $countryArr=[];
+//            foreach($info['country_bn'] as $k => $v){
+//                $countryArr[]="'".$v."'";
+//            }
+//            $countryStr=implode(',',$countryArr);
+//        }
+//        $arr['country']=$countryStr;
+//        return $arr;
+//    }
 }
