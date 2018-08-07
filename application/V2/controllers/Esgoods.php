@@ -56,6 +56,8 @@ class EsgoodsController extends PublicController {
         $model = new EsGoodsModel();
         $ret = $model->getgoods($condition, null, $lang);
 
+        list($en_count, $zh_count, $ru_count, $es_count) = $model->getStatics($condition);
+
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
@@ -65,6 +67,12 @@ class EsgoodsController extends PublicController {
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
+
+            $send['en_count'] = $en_count;
+            $send['zh_count'] = $zh_count;
+            $send['ru_count'] = $ru_count;
+            $send['es_count'] = $es_count;
+
             $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();
