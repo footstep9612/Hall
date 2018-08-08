@@ -146,6 +146,28 @@ class BuyerfilesController extends PublicController
             $this->jsonReturn($dataJson);
         }
     }
+    //备份客户-导出数据
+    public function bakCustomerAction(){
+        set_time_limit(0);
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
+        $data['admin']=$this->getUserRole();
+        $model = new BuyerModel();
+        $res = $model->exportCustomer();
+        if($res['code'] == 1){
+            $excel = new BuyerExcelModel();
+            $excel->saveExcel($res['name'],$res['url'],$created_by);
+            $this->jsonReturn($res);
+        }else{
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'excel导出错误或数据为空'
+            );
+            $this->jsonReturn($dataJson);
+        }
+    }
     /**
      * 客户档案信息管理计算信息完整度-王帅
      */
