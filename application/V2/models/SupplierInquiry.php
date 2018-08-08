@@ -1085,18 +1085,18 @@ class SupplierInquiryModel extends PublicModel {
 
                 $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
 
-                if (!empty($item['total_exw_price'])) {
-
+                if (!empty($item['total_exw_price']) && $item['total_exw_price'] > 0) {
                     $list[$key]['total_exw_price'] = $item['total_exw_price'];
                 } elseif (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
                     $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
-                } elseif (!empty($item['qt_total_exw_price'])) {
+                } elseif (!empty($item['qt_total_exw_price']) && $item['qt_total_exw_price'] > 0) {
 
                     $list[$key]['total_exw_price'] = $item['qt_total_exw_price'];
                 } elseif (empty($item['qt_total_exw_price']) && $item['qt_exw_unit_price'] > 0) {
 
                     $list[$key]['total_exw_price'] = $item['qt_exw_unit_price'] * $item['quote_qty'];
                 } else {
+
                     empty($exchange_rates[$item['purchase_price_cur_bn']]) ? $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']) : null;
                     $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
                 }
@@ -1129,6 +1129,8 @@ class SupplierInquiryModel extends PublicModel {
                 }
             }
         }
+        print_r($list);
+        die;
     }
 
     /*
