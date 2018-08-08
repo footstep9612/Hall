@@ -898,8 +898,6 @@ class SupplierInquiryModel extends PublicModel {
             foreach ($category_lists as $category) {
                 if (empty($categorys[$category['inquiry_id']])) {
                     $categorys[$category['inquiry_id']] = $category['category'];
-                } else {
-                    continue;
                 }
             }
             $where = ['deleted_flag' => 'N', 'inquiry_id' => ['in', $inquiry_ids]];
