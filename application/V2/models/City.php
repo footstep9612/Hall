@@ -6,7 +6,7 @@
  * Date: 2017/6/28
  * Time: 11:32
  */
-class CityModel extends Model {
+class CityModel extends PublicModel {
 
     protected $dbName = 'erui_dict'; //数据库名称
     protected $tableName = 'city';
