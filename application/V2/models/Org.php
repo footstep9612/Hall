@@ -161,10 +161,10 @@ class OrgModel extends PublicModel {
     }
 
     public function getParentid($org_id) {
-        $where = ['deleted_flag' => 'N'];
+        $where = ['deleted_flag' => 'N', 'org_node' => ['in', ['ub', 'erui', 'lg', 'eub', 'elg']]];
 
         if ($org_id) {
-            $where = ['id' => $org_id];
+            $where['id'] = $org_id;
         } else {
             return '';
         }
@@ -181,6 +181,25 @@ class OrgModel extends PublicModel {
             return $info['parent_id'];
         } else {
             return '';
+        }
+    }
+
+    public function getChilds($org_id) {
+        $where = ['deleted_flag' => 'N', 'org_node' => ['in', ['ub', 'erui', 'lg', 'eub', 'elg']]];
+
+        if ($org_id) {
+            $where['parent_id'] = $org_id;
+        } else {
+            return false;
+        }
+        $count = $this
+                ->where($where)
+                ->count();
+
+        if ($count > 0) {
+            return true;
+        } else {
+            return false;
         }
     }
 
