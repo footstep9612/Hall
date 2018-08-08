@@ -24,6 +24,7 @@ class UserController extends PublicController {
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
+        $data['deleted_flag']='N';
         if (!empty($data['deleted_flag'])) {
             $where['deleted_flag'] = $data['deleted_flag'];
         }
