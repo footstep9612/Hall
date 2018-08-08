@@ -1083,18 +1083,7 @@ class SupplierInquiryModel extends PublicModel {
                 $list[$key]['total_exw_price'] = $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
 
-                $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
-                if ($item['total_quote_price'] > 0) {
-                    $list[$key]['quote_price_cur_bn'] = 'USD';
-                    $list[$key]['total_quoted_price_usd'] = $item['total_quote_price'];
-                } elseif ($item['quote_unit_price'] > 0) {
-                    $list[$key]['quote_price_cur_bn'] = 'USD';
-                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quoted_price'] = $item['quote_unit_price'] * $item['quote_qty'];
-                } else {
-                    $list[$key]['quote_unit_price'] = $gross_profit_rate * $item['purchase_unit_price'];
-                    $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
-                    $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
-                }
+
 
                 if (!empty($item['total_exw_price'])) {
 
@@ -1114,6 +1103,21 @@ class SupplierInquiryModel extends PublicModel {
 
                     $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
                     $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
+                }
+
+                $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
+                if ($item['total_quote_price'] > 0) {
+                    $list[$key]['quote_price_cur_bn'] = 'USD';
+                    $list[$key]['total_quoted_price_usd'] = $item['total_quote_price'];
+                    continue;
+                } elseif ($item['quote_unit_price'] > 0) {
+                    $list[$key]['quote_price_cur_bn'] = 'USD';
+                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quoted_price'] = $item['quote_unit_price'] * $item['quote_qty'];
+                    continue;
+                } else {
+                    $list[$key]['quote_unit_price'] = $gross_profit_rate * $item['purchase_unit_price'];
+                    $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
+                    $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
                 }
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
