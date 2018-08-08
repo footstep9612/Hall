@@ -84,10 +84,13 @@ class UserController extends PublicController {
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
         $count = $user_modle->getcount($where);
+        $status_count=$user_modle->getStatusCount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
             if ($count) {
                 $datajson['count'] = $count[0]['num'];
+                $datajson['disabled_count'] = $status_count['disabled_num'];
+                $datajson['normal_count'] = $status_count['normal_num'];
             } else {
                 $datajson['count'] = 0;
             }
@@ -99,7 +102,6 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
     public function crmlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang'] = $this->lang;
