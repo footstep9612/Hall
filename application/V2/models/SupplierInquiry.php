@@ -771,7 +771,7 @@ class SupplierInquiryModel extends PublicModel {
             'LOGI_QUOTING' => 'logi_quoting_quoted_time',
             'LOGI_APPROVING' => 'logi_approving_quoted_time',
             'BIZ_APPROVING' => 'biz_approving_quoted_time',
-            'MARKET_APPROVING' => 'market_approving_quoted_time'
+            'MARKET_APPROVING' => 'market_approving_quoted_time',
         ];
         $quoteNode = array_keys($quoteMapping);
 
@@ -788,10 +788,13 @@ class SupplierInquiryModel extends PublicModel {
             }
         }
 
-        $nodes = $inquiryCheckLogModel->field('inquiry_id,in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')
+        $nodes = $inquiryCheckLogModel
+                ->field('inquiry_id,in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')
                 ->where(['inquiry_id' => ['in', !empty($inquiry_ids) ? $inquiry_ids : ['-1']],
-                    'in_node' => ['in', $quoteNode]])
+                    'in_node' => ['in', $quoteNode], 'not EXISTS (SELECT * from ' . $inquiryCheckLogModel->getTableName() . ' a where a.id<>erui_rfq.inquiry_check_log.id and a.inquiry_id=erui_rfq.inquiry_check_log.inquiry_id and a.out_at>=erui_rfq.inquiry_check_log.into_at and a.into_at<=erui_rfq.inquiry_check_log.into_at and a.in_node=erui_rfq.inquiry_check_log.in_node and a.out_node=erui_rfq.inquiry_check_log.out_node )']
+                )
                 ->select();
+
         $spendList = [];
         foreach ($nodes as $nodedata) {
             $spendList[$nodedata['inquiry_id']][] = $nodedata;
