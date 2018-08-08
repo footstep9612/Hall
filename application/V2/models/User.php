@@ -101,7 +101,6 @@ class UserModel extends PublicModel {
         $list =  $this->query($sql);
         return $list;
     }
-
     public function getcount($condition = [], $order = " employee.id desc") {
         $where = $this->getCondition($condition);
         $sql = 'SELECT count(DISTINCT `employee`.`id`) as num';
@@ -113,6 +112,29 @@ class UserModel extends PublicModel {
         $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
         $sql .= $where;
         return $this->query($sql);
+    }
+    public function getStatusCount($condition = []) {
+        $where = $this->getCondition($condition);
+        $sql = 'SELECT employee.status,count(DISTINCT `employee`.`id`) as num';
+        $sql .= ' FROM ' . $this->g_table;
+        $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
+        $sql .= ' left join  org on org_member.org_id = org.id ';
+        $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
+        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
+        $sql .= $where;
+        $sql .= ' GROUP BY `employee`.`status`';
+        $info=$this->query($sql);
+        $arr=[];
+        foreach($info as $k => $v){
+            if($v['status']=='DISABLED'){   //禁用
+                $arr['disabled_num']=$v['num'];
+            }
+            if($v['status']=='NORMAL'){ //正常
+                $arr['normal_num']=$v['num'];
+            }
+        }
+        return $arr;
     }
     public function crmlist($data){
         $lang=$data['lang'];
