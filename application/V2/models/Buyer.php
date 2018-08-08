@@ -2704,14 +2704,33 @@ EOF;
         }
         return $info;
     }
-
+    public function getBuyerBakInfo($data){
+        $lang=$data['lang'];
+        $need=$this->table('erui_buyer.buyer_bak')->where(array('lang'=>$lang))->select();
+        foreach($need as $k => &$v){
+            unset($v['id']);
+            unset($v['lang']);
+        }
+        $excelName = 'buyerlist';
+        $excel = $this->exportModel($excelName,$need,$lang);  //导入excel
+        $excelArr[] = $excel;
+        return $excelArr;
+    }
     /**
      * @param $data
      * 客户管理列表excel导出
      */
     public function exportBuyerExcel($data){
         //获取数据,上传本地
-        $excelArr = $this->getBuyerManageDataByCond($data,0,10,true);
+        if(in_array('CRM客户管理',$data['admin']['role'])){
+            if(empty($data['created_name'])&&empty($data['percent_max'])&&empty($data['percent_min'])&&empty($data['area_country'])&&empty($data['agent_name'])&&empty($data['country_search'])&&empty($data['buyer_code'])&&empty($data['buyer_no'])&&empty($data['created_time'])&&empty($data['source'])&&empty($data['name'])&&empty($data['buyer_level'])){
+                $excelArr = $this->getBuyerBakInfo($data);
+            }else{
+                $excelArr = $this->getBuyerManageDataByCond($data,0,10,true);
+            }
+        }else{
+            $excelArr = $this->getBuyerManageDataByCond($data,0,10,true);
+        }
         if(!is_array($excelArr)){
             return false;
         }
@@ -2755,7 +2774,7 @@ EOF;
     public function packageBuyerExcelData($data,$lang='zh'){
         $arr = [];
         foreach($data as $k => $v){
-            $arr[$k]['id'] = $v['id'];  //客户id
+            $arr[$k]['buyer_id'] = $v['id'];  //客户id
             if(!empty($v['percent'])){
                 $arr[$k]['percent'] = $v['percent'].'%';    //信息完整度百分比
             }else{
@@ -3167,6 +3186,187 @@ EOF;
         }while($totalCount>0);   //结束-----------------------------------------------------------------------------------
         return $excelArr;  //文件数组
     }
+    public function exportCustomer(){
+        $this->query('TRUNCATE erui_buyer.buyer_bak');
+        sleep(10);
+        $zh=$this->buyerBakZhEn('zh');
+        $en=$this->buyerBakZhEn('en');
+        echo $zh.'+'.$en;die;
+    }
+    public function buyerBakZhEn($lang){
+        $count = $this->where("deleted_flag='N' and status !='REJECTED'")->count();
+//        echo $count;die;
+        $i=0;
+        do{
+            try{
+                $this->buyerBak($i,$lang);
+                $i+=200;
+                $count-=200;
+                sleep(5);
+            }catch (Exception $e){
+                print_r($e->getMessage());exit;
+            }
+
+        }while($count>=0);
+        return $lang;
+    }
+    public function buyerBak($i,$lang){
+        $info=$this->getCustomerInfo($i,$lang);
+        $str='';
+        foreach($info as $kk => $vv){
+            foreach($vv as $k => &$v){
+                $v="'".$v."'";
+            }
+            $str.=",(null,'$lang',".implode(',',$vv).")";
+        }
+        $str=mb_substr($str,1);
+        $sql='insert into erui_buyer.buyer_bak ';
+        $sql.=' values '.$str;
+//        print_r($sql);die;
+        $res=$this->query($sql);
+        return true;
+    }
+    //备份全部有效客户数据
+    public function getCustomerInfo($i,$lang='zh'){
+        $cond="buyer.deleted_flag='N' and buyer.status !='REJECTED'";
+        $field ='buyer.id'; //获取查询字段
+        $fieldBuyerArr = array(
+//            'id',   //客户id
+//                'area_bn',   //客地区
+            'percent',   //信息完整度百分比
+            'country_bn',   //国家
+            'buyer_code',   //客户编码
+            'name as buyer_name',   //客户名称
+            'created_at',   //创建时间
+            'build_time',   //客户档案创建时间
+            'is_oilgas',   //是否油气
+            'buyer_level',   //客户等级
+            'level_at',   //等级设置时间
+            'reg_capital',   //注册资金
+            'reg_capital_cur',   //货币
+//                'credit_level',   //采购商信用等级   X
+//                'credit_type',   //授信类型   X
+//                'line_of_credit',   //授信额度    X
+        );
+        foreach($fieldBuyerArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $fieldBusiness = array(
+//                'is_net', //是否入网
+//                'net_at', //入网时间
+//                'net_invalid_at', //失效时间
+            'product_type', //产品类型
+            'is_local_settlement', //本地结算
+            'is_purchasing_relationship', //采购关系
+        );
+        foreach($fieldBusiness as $v){
+            $field .= ',business.'.$v;
+        }
+        $field .= ',(select name from erui_sys.employee where id=buyer.created_by and deleted_flag=\'N\') as created_name';
+        $field .= ',credit.credit_level'; //采购商信用等级
+        $field .= ',credit.credit_type';  //授信类型
+        $field .= ',credit.line_of_credit';   //授信额度
+
+        $info = $this->alias('buyer')
+            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->join('erui_buyer.customer_credit credit on buyer.id=credit.buyer_id and credit.deleted_flag=\'N\'','left')
+//                ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
+            ->field($field)
+            ->where($cond)
+            ->order('buyer.id desc')
+            ->limit($i,200)
+            ->select();
+        $country = new CountryModel();
+        $level = new BuyerLevelModel();
+        $credit = new CreditModel();
+        $net=new NetSubjectModel();
+        $agentModel = new BuyerAgentModel();
+        $visitModel = new BuyerVisitModel();
+        $inquiryModel = new InquiryModel();
+        $orderModel = new OrderModel();
+        foreach($info as $k => $v){
+            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
+            if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }
+            if(!empty($info[$k]['credit_level']) && is_numeric($info[$k]['credit_level'])){
+                $info[$k]['credit_level'] = $credit->getCreditNameById($v['credit_level'],$lang);
+            }
+            if(!empty($info[$k]['credit_type']) && is_numeric($info[$k]['credit_type'])){
+                $info[$k]['credit_type'] = $credit->getCreditNameById($v['credit_type'],$lang);
+            }
+            //获取入网管理
+            $netInfo=$net->showNetSubject(array('buyer_id'=>$v['id']));
+            if(empty($netInfo)){    //arr
+                $info[$k]['is_net']='N'; //是否入网
+                $info[$k]['net_at']=''; //入网时间
+                $info[$k]['net_invalid_at']=''; //失效时间
+            }elseif(!empty($netInfo['erui']['net_at'])){
+                $info[$k]['is_net']='Y'; //是否入网
+                $info[$k]['net_at']=$netInfo['erui']['net_at']; //入网时间
+                $info[$k]['net_invalid_at']=$netInfo['erui']['net_invalid_at']; //失效时间
+            }else{
+                $info[$k]['is_net']='Y'; //是否入网
+                $info[$k]['net_at']=$netInfo['equipment']['net_at']; //入网时间
+                $info[$k]['net_invalid_at']=$netInfo['equipment']['net_invalid_at']; //失效时间
+            }
+
+            //
+            //客户服务经理
+            $agentRes = $agentModel->getBuyerAgentFind($v['id']);
+            $info[$k]['market_agent']=$agentRes;
+            //访问
+            $visitRes = $visitModel->singleVisitInfo($v['id']);
+            $info[$k]['total_visit']=$visitRes['totalVisit'];
+            $info[$k]['week_visit']=$visitRes['week'];
+            $info[$k]['month_visit']=$visitRes['month'];
+            $info[$k]['quarter_visit']=$visitRes['quarter'];
+            //询报价
+            $inquiryRes = $inquiryModel->statisInquiry($v['id']);
+            $info[$k]['inquiry_count']=$inquiryRes['inquiry_count'];
+            $info[$k]['quote_count']=$inquiryRes['quote_count'];
+            $info[$k]['inquiry_account']=$inquiryRes['account'];
+            //订单
+            $orderRes = $orderModel->statisOrder($v['id']);
+            $info[$k]['order_count']=$orderRes['count'];
+            $info[$k]['order_account']=$orderRes['account'];
+            $info[$k]['min_range']=$orderRes['min'];
+            $info[$k]['max_range']=$orderRes['max'];
+            $info[$k]['mem_cate']=$orderRes['mem_cate'];
+        }
+        $need = $this->packageBuyerExcelData($info,$lang);
+        return $need;
+    }
+//序号
+//客户信息完整度
+//国家
+//客户代码（CRM）
+//客户名称
+//档案创建日期
+//创建人
+//是否油气
+//会员级别
+//客户分类
+//定级日期
+//注册资金
+//货币
+//是否已入网
+//入网时间
+//入网失效时间
+//客户产品类型
+//客户信用等级
+//授信类型
+//授信额度
+//是否本地币结算
+//是否与KERUI有采购关系
+//KERUI/ERUI客户服务经理	拜访总次数
+//询价数量
+//报价数量
+//报价金额（美元）
+//订单数量
+//订单金额（美元）
+//单笔金额偏重区间
+
 
     /**
      * sheet名称 $sheetName
