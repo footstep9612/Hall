@@ -66,6 +66,10 @@ class UserModel extends PublicModel {
         if (!empty($condition['user_no'])) {
             $sql .= ' AND employee.user_no like \'%' . $condition['user_no'] . '%\'';
         }
+        if (!empty($condition['name_user_no'])) {
+            $sql .= ' AND ( employee.name like \'%' . $condition['name_user_no'] . '%\'';
+            $sql .= ' or  employee.user_no like \'%' . $condition['name_user_no'] . '%\' )';
+        }
         if (!empty($condition['bn'])) {
             $sql .= ' AND country_member.country_bn in (' . $condition['bn'] . ')';
         }
@@ -101,8 +105,8 @@ class UserModel extends PublicModel {
         $list =  $this->query($sql);
         return $list;
     }
-
     public function getcount($condition = [], $order = " employee.id desc") {
+        unset($condition['status']);
         $where = $this->getCondition($condition);
         $sql = 'SELECT count(DISTINCT `employee`.`id`) as num';
         $sql .= ' FROM ' . $this->g_table;
@@ -113,6 +117,30 @@ class UserModel extends PublicModel {
         $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
         $sql .= $where;
         return $this->query($sql);
+    }
+    public function getStatusCount($condition = []) {
+        unset($condition['status']);
+        $where = $this->getCondition($condition);
+        $sql = 'SELECT employee.status,count(DISTINCT `employee`.`id`) as num';
+        $sql .= ' FROM ' . $this->g_table;
+        $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
+        $sql .= ' left join  org on org_member.org_id = org.id ';
+        $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
+        $sql .= ' left join  role on role_member.role_id = role.id ';
+        $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
+        $sql .= $where;
+        $sql .= ' GROUP BY `employee`.`status`';
+        $info=$this->query($sql);
+        $arr=[];
+        foreach($info as $k => $v){
+            if($v['status']=='DISABLED'){   //禁用
+                $arr['disabled_num']=$v['num'];
+            }
+            if($v['status']=='NORMAL'){ //正常
+                $arr['normal_num']=$v['num'];
+            }
+        }
+        return $arr;
     }
     public function crmlist($data){
         $lang=$data['lang'];
@@ -307,20 +335,23 @@ class UserModel extends PublicModel {
         if (isset($create['deleted_flag'])) {
             $data['deleted_flag'] = $create['deleted_flag'];
         }
-        switch ($create['status']) {
-            case self::STATUS_DELETED:
-                $data['status'] = $create['status'];
-                $data['deleted_flag'] = 'Y';
-                break;
-            case self::STATUS_DISABLED:
-                $data['status'] = $create['status'];
-                $data['deleted_flag'] = 'Y';
-                break;
-            case self::STATUS_NORMAL:
-                $data['status'] = $create['status'];
-                $data['deleted_flag'] = 'N';
-                break;
+        if (isset($create['status'])) {
+            $data['status'] = $create['status'];
         }
+//        switch ($create['status']) {
+//            case self::STATUS_DELETED:
+//                $data['status'] = $create['status'];
+//                $data['deleted_flag'] = 'Y';
+//                break;
+//            case self::STATUS_DISABLED:
+//                $data['status'] = $create['status'];
+//                $data['deleted_flag'] = 'Y';
+//                break;
+//            case self::STATUS_NORMAL:
+//                $data['status'] = $create['status'];
+//                $data['deleted_flag'] = 'N';
+//                break;
+//        }
         if (!$where) {
             return false;
         } else {

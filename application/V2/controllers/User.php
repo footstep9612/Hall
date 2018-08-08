@@ -24,6 +24,7 @@ class UserController extends PublicController {
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
+        $data['deleted_flag']='N';
         if (!empty($data['deleted_flag'])) {
             $where['deleted_flag'] = $data['deleted_flag'];
         }
@@ -67,6 +68,10 @@ class UserController extends PublicController {
             $user_no = trim($data['user_no']);
             $where['user_no'] = $user_no;
         }
+        if (!empty($data['name_user_no'])) {
+
+            $where['name_user_no'] = trim($data['name_user_no']);
+        }
         if (!empty($data['bn'])) {
             $pieces = explode(",", $data['bn']);
             for ($i = 0; $i < count($pieces); $i++) {
@@ -84,10 +89,13 @@ class UserController extends PublicController {
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
         $count = $user_modle->getcount($where);
+        $status_count=$user_modle->getStatusCount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
             if ($count) {
                 $datajson['count'] = $count[0]['num'];
+                $datajson['disabled_count'] = $status_count['disabled_num']?$status_count['disabled_num']:0;
+                $datajson['normal_count'] = $status_count['normal_num']?$status_count['normal_num']:0;
             } else {
                 $datajson['count'] = 0;
             }
@@ -99,7 +107,6 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
     public function crmlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang'] = $this->lang;
