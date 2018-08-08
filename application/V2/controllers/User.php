@@ -290,7 +290,9 @@ class UserController extends PublicController {
         } else {
             $userId = $this->user['id'];
         }
-
+        if (!empty($condition['type']) && $condition['type'] === 'CHILD' && empty($condition['parent_id'])) {
+            $condition['parent_id'] = (new UrlPermModel())->getMenuIdByName('首页');
+        }
         $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
         if (!empty($data)) {
             $datajson['code'] = 1;
