@@ -403,7 +403,7 @@ class SupplierInquiryModel extends PublicModel {
                 . 'WHEN \'MARKET_CONFIRMING\' THEN \'市场确认\' '
                 . 'WHEN \'QUOTE_SENT\' THEN \'报价单已发出\' '
                 . 'WHEN \'INQUIRY_CLOSED\' THEN \'报价关闭\' '
-                . 'WHEN \'INQUIRY_CONFIRM\' THEN \'报价确认\' '
+                . 'WHEN \'INQUIRY_CONFIRM\' THEN \'询单确认\' '
                 . ' END) as istatus,';
 
         $field .= '(case i.quote_status WHEN \'NOT_QUOTED\' THEN \'未报价\' '
@@ -498,9 +498,9 @@ class SupplierInquiryModel extends PublicModel {
         }
         $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:CA' . ($j + 2))->applyFromArray($styleArray);
-        $objSheet->getStyle('A1:CA' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
-        $objSheet->getStyle('A1:CA' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
+        $objSheet->getStyle('A1:CC' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:CC' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:CC' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . $name . date('YmdHi') . '.xls';
         $objWriter->save($file);
@@ -898,8 +898,6 @@ class SupplierInquiryModel extends PublicModel {
             foreach ($category_lists as $category) {
                 if (empty($categorys[$category['inquiry_id']])) {
                     $categorys[$category['inquiry_id']] = $category['category'];
-                } else {
-                    continue;
                 }
             }
             $where = ['deleted_flag' => 'N', 'inquiry_id' => ['in', $inquiry_ids]];
@@ -958,7 +956,7 @@ class SupplierInquiryModel extends PublicModel {
             if (!in_array($serialNo, $serialNoList)) {
                 $tmpList[$serialNo]['sequence_no'] = ++$i;
 
-                if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭', '报价确认'])) {
+                if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭', '询单确认'])) {
                     $tmpList[$serialNo]['quote_unit_price'] = '';
                     $tmpList[$serialNo]['total_quote_price'] = '';
                     $tmpList[$serialNo]['total_quoted_price_usd'] = '';
@@ -1080,11 +1078,30 @@ class SupplierInquiryModel extends PublicModel {
         $exchange_rates = [];
         foreach ($list as $key => $item) {
 // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
-            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+
+            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭', '询单确认'])) {
                 $list[$key]['total_exw_price'] = $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
 
                 $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
+
+                if (!empty($item['total_exw_price'])) {
+
+                    $list[$key]['total_exw_price'] = $item['total_exw_price'];
+                } elseif (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
+                    $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
+                } elseif (!empty($item['qt_total_exw_price'])) {
+                    empty($exchange_rates[$item['purchase_price_cur_bn']]) ? $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']) : null;
+                    $list[$key]['total_exw_price'] = $item['qt_total_exw_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
+                } elseif (empty($item['qt_total_exw_price']) && $item['qt_exw_unit_price'] > 0) {
+                    empty($exchange_rates[$item['purchase_price_cur_bn']]) ? $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']) : null;
+                    $list[$key]['total_exw_price'] = $item['qt_exw_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
+                } else {
+                    empty($exchange_rates[$item['purchase_price_cur_bn']]) ? $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']) : null;
+                    $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
+                }
+
+
                 if ($item['total_quote_price'] > 0) {
                     $list[$key]['quote_price_cur_bn'] = 'USD';
                     $list[$key]['total_quoted_price_usd'] = $item['total_quote_price'];
@@ -1098,20 +1115,6 @@ class SupplierInquiryModel extends PublicModel {
                     $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                     $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
                 }
-                if (!empty($item['total_exw_price'])) {
-                    $list[$key]['total_exw_price'] = $item['total_exw_price'];
-                } elseif (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
-                    $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
-                } elseif (!empty($item['qt_total_exw_price'])) {
-                    $list[$key]['total_exw_price'] = $item['qt_total_exw_price'];
-                } elseif (empty($item['qt_total_exw_price']) && $item['qt_exw_unit_price'] > 0) {
-                    $list[$key]['total_exw_price'] = $item['qt_exw_unit_price'] * $item['quote_qty'];
-                } elseif (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
-                    $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
-                } else {
-                    $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
-                    $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
-                }
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                 } else {
@@ -1119,10 +1122,8 @@ class SupplierInquiryModel extends PublicModel {
                         $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] / $item['exchange_rate'];
                     } elseif ($item['exchange_rate']) {
                         $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $item['exchange_rate'];
-                    } elseif (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
-                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
                     } else {
-                        $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
+                        empty($exchange_rates[$item['purchase_price_cur_bn']]) ? $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']) : null;
                         $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
                     }
                 }
