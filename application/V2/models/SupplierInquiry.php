@@ -1080,6 +1080,7 @@ class SupplierInquiryModel extends PublicModel {
         $exchange_rates = [];
         foreach ($list as $key => $item) {
 // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['total_exw_price'] = $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
@@ -1088,27 +1089,31 @@ class SupplierInquiryModel extends PublicModel {
                 if ($item['total_quote_price'] > 0) {
                     $list[$key]['quote_price_cur_bn'] = 'USD';
                     $list[$key]['total_quoted_price_usd'] = $item['total_quote_price'];
-                    continue;
                 } elseif ($item['quote_unit_price'] > 0) {
                     $list[$key]['quote_price_cur_bn'] = 'USD';
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quoted_price'] = $item['quote_unit_price'] * $item['quote_qty'];
-                    continue;
                 } else {
                     $list[$key]['quote_unit_price'] = $gross_profit_rate * $item['purchase_unit_price'];
                     $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                     $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
                 }
+
                 if (!empty($item['total_exw_price'])) {
+
                     $list[$key]['total_exw_price'] = $item['total_exw_price'];
                 } elseif (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
                     $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
                 } elseif (!empty($item['qt_total_exw_price'])) {
+
                     $list[$key]['total_exw_price'] = $item['qt_total_exw_price'];
                 } elseif (empty($item['qt_total_exw_price']) && $item['qt_exw_unit_price'] > 0) {
+
                     $list[$key]['total_exw_price'] = $item['qt_exw_unit_price'] * $item['quote_qty'];
                 } elseif (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
+
                     $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
                 } else {
+
                     $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
                     $list[$key]['total_exw_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rates[$item['purchase_price_cur_bn']];
                 }
@@ -1128,6 +1133,8 @@ class SupplierInquiryModel extends PublicModel {
                 }
             }
         }
+        print_r($list);
+        die;
     }
 
     /*
