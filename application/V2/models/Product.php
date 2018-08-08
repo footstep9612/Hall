@@ -294,6 +294,7 @@ class ProductModel extends PublicModel {
 
                     $data['bizline_id'] = $bizline_id;
                     $this->checkParam($data, $this->field);     //字段校验
+
                     if ($lang == 'en') {
                         if (!empty($data['name']) && haveZh($data['name'])) {
                             $this->rollback();
@@ -450,21 +451,20 @@ class ProductModel extends PublicModel {
     }
 
 
-    public function getBrand($id, $lang)
+    public function getBrand($name, $lang)
     {
-        $brand_json = (new BrandModel)->where([
+        $brands = (new BrandModel)->where([
             'deleted_flag' => 'N',
             'status' => 'VALID',
-            'id' => $id
-        ])->find();
-
-        $brands = json_decode($brand_json['brand'], true);
+        ])->select();
 
         foreach ($brands as $brand) {
-            if ($brand['lang'] == $lang) {
-                return json_encode($brand);
+            $brand = json_decode($brand['brand'], true);
+            foreach ($brand as $item) {
+                if ($item['lang'] == $lang && $item['name'] == trim($name)) return json_encode($item);
             }
         }
+
     }
 
     /**
@@ -822,7 +822,7 @@ class ProductModel extends PublicModel {
                     $item['bizline'] = $bizline;
                     if (!is_null(json_decode($item['brand'], true))) {
                         $brand = json_decode($item['brand'], true);
-                        $item['brand'] = $brand;
+                        $item['brand'] = $brand['name'];
                     }
 
                     $item['remark'] = $checklogModel->getlastRecord($item['spu'], $item['lang']);
