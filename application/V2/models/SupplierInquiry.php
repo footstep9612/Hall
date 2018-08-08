@@ -1129,8 +1129,6 @@ class SupplierInquiryModel extends PublicModel {
                 }
             }
         }
-        print_r($list);
-        die;
     }
 
     /*
