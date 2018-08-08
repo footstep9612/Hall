@@ -403,7 +403,7 @@ class SupplierInquiryModel extends PublicModel {
                 . 'WHEN \'MARKET_CONFIRMING\' THEN \'市场确认\' '
                 . 'WHEN \'QUOTE_SENT\' THEN \'报价单已发出\' '
                 . 'WHEN \'INQUIRY_CLOSED\' THEN \'报价关闭\' '
-                . 'WHEN \'INQUIRY_CONFIRM\' THEN \'报价确认\' '
+                . 'WHEN \'INQUIRY_CONFIRM\' THEN \'询单确认\' '
                 . ' END) as istatus,';
 
         $field .= '(case i.quote_status WHEN \'NOT_QUOTED\' THEN \'未报价\' '
@@ -958,7 +958,7 @@ class SupplierInquiryModel extends PublicModel {
             if (!in_array($serialNo, $serialNoList)) {
                 $tmpList[$serialNo]['sequence_no'] = ++$i;
 
-                if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭', '报价确认'])) {
+                if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭', '询单确认'])) {
                     $tmpList[$serialNo]['quote_unit_price'] = '';
                     $tmpList[$serialNo]['total_quote_price'] = '';
                     $tmpList[$serialNo]['total_quoted_price_usd'] = '';
@@ -1081,7 +1081,7 @@ class SupplierInquiryModel extends PublicModel {
         foreach ($list as $key => $item) {
 // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
 
-            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭', '询单确认'])) {
                 $list[$key]['total_exw_price'] = $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
 
