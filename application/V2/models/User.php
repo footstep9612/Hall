@@ -102,6 +102,7 @@ class UserModel extends PublicModel {
         return $list;
     }
     public function getcount($condition = [], $order = " employee.id desc") {
+        unset($condition['status']);
         $where = $this->getCondition($condition);
         $sql = 'SELECT count(DISTINCT `employee`.`id`) as num';
         $sql .= ' FROM ' . $this->g_table;
@@ -114,6 +115,7 @@ class UserModel extends PublicModel {
         return $this->query($sql);
     }
     public function getStatusCount($condition = []) {
+        unset($condition['status']);
         $where = $this->getCondition($condition);
         $sql = 'SELECT employee.status,count(DISTINCT `employee`.`id`) as num';
         $sql .= ' FROM ' . $this->g_table;
