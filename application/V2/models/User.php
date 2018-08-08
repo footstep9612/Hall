@@ -66,6 +66,10 @@ class UserModel extends PublicModel {
         if (!empty($condition['user_no'])) {
             $sql .= ' AND employee.user_no like \'%' . $condition['user_no'] . '%\'';
         }
+        if (!empty($condition['name_user_no'])) {
+            $sql .= ' AND ( employee.name like \'%' . $condition['name_user_no'] . '%\'';
+            $sql .= ' or  employee.user_no like \'%' . $condition['name_user_no'] . '%\' )';
+        }
         if (!empty($condition['bn'])) {
             $sql .= ' AND country_member.country_bn in (' . $condition['bn'] . ')';
         }
