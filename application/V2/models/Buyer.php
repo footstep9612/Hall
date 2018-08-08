@@ -2709,7 +2709,7 @@ EOF;
     }
     public function getBuyerBakInfo($data){
         $lang=$data['lang'];
-        $need=$this->table('erui_buyer.buyer_bak')->where(array('lang'=>$lang))->select();
+        $need=$this->table('erui_buyer.buyer_bak')->where(array('lang'=>$lang))->select()->group('buyer_id');
         foreach($need as $k => &$v){
             unset($v['id']);
             unset($v['lang']);
