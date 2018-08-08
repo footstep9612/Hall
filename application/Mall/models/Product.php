@@ -350,7 +350,7 @@ class ProductModel extends PublicModel {
                     $spus[] = $item['relation_spu'];
                 }
                 $data['spu'] = $this->field('show_name,name,spu')
-                                ->where(['spu' => ['in', $spus], 'lang' => $input['lang']])->select();
+                                ->where(['spu' => ['in', $spus], 'lang' => $input['lang'], 'deleted_flag'=>'N'])->select();
 
                 //附件图
                 $attachModel = new ProductAttachModel();
