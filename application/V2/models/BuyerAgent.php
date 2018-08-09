@@ -599,7 +599,6 @@ class BuyerAgentModel extends PublicModel {
             $agent['agent_info']=[];
         }
 
-        print_r($agent);die;
         return $agent;
     }
 }
