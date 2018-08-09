@@ -65,6 +65,9 @@ class Rfq_CheckLogModel extends PublicModel {
                 }
                 $log ['out_node'] = $in_node;
             }
+            if ($log['out_node'] == $out_node) {
+                return false;
+            }
             $data = [
                 'inquiry_id' => $inquiry_id,
                 'action' => $action,
