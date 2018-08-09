@@ -313,7 +313,7 @@ class UserController extends PublicController {
             $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
             if ($condition['only_one_level'] == 'Y') {
                 $home = (new UrlPermModel())->getHome();
-                $data = array_merge([$home], $data);
+                $data = array_merge($home, $data);
             }
         }
         if (!empty($data)) {
