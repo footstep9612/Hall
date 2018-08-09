@@ -189,15 +189,36 @@ class UrlPermModel extends PublicModel {
     public function getDefault() {
         if (redisExist('HOME_DEFAULT')) {
 
-            return json_encode(redisGet('HOME_DEFAULT'), true);
+            return json_decode(redisGet('HOME_DEFAULT'), true);
         } else {
-            $parent_id = $this->getMenuIdByName('首页');
-
+            $parent_id = redisExist('HOME_ID') ? redisGet('HOME_ID') : null;
+            if (!$parent_id) {
+                $parent_id = $this->getMenuIdByName('首页');
+                redisSet('HOME_ID', $parent_id);
+            }
             $data = $this->getlist(['parent_id' => $parent_id], null);
             $res = $this->getUrlpermChildren($data);
 
             redisSet('HOME_DEFAULT', json_encode($res));
             return $res;
+        }
+    }
+
+    public function getHome() {
+        if (redisExist('HOME')) {
+
+            return json_decode(redisGet('HOME'), true);
+        } else {
+            $parent_id = redisExist('HOME_ID') ? redisGet('HOME_ID') : null;
+            if (!$parent_id) {
+                $parent_id = $this->getMenuIdByName('首页');
+                redisSet('HOME_ID', $parent_id);
+            }
+            $data = $this->getlist(['id' => $parent_id], null);
+
+
+            redisSet('HOME', json_encode($data));
+            return $data;
         }
     }
 

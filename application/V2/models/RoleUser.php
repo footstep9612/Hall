@@ -202,7 +202,7 @@ class RoleUserModel extends PublicModel {
     public function getUserMenu($userId, $condition = [], $lang = 'zh') {
 
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
-        $data = $this->_TopuserRoleList($userId, $parentId, $condition['source'], $condition['only_one_level']);
+        $data = $this->_TopuserRoleList($userId, $parentId, $condition['source'], $condition['not_pid']);
 
         return $this->_funcChildren($userId, $data, $condition['source'], $lang, $condition['only_one_level']);
     }
@@ -289,7 +289,7 @@ class RoleUserModel extends PublicModel {
         }
     }
 
-    private function _TopuserRoleList($user_id, $pid = [], $source = null) {
+    private function _TopuserRoleList($user_id, $pid = [], $source = null, $not_pid = null) {
         if ($user_id) {
             $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`';
             $employee_model = new EmployeeModel();
@@ -303,6 +303,9 @@ class RoleUserModel extends PublicModel {
                 $where['fp.parent_id'] = ['in', $pid];
             } elseif (empty($pid) && $pid === 0) {
                 $where['fp.parent_id'] = 0;
+            }
+            if (!empty($not_pid)) {
+                $where[] = 'fp.parent_id <>' . $not_pid;
             }
             if ($source) {
                 $where['fp.source'] = $source;

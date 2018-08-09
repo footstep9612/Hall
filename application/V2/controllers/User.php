@@ -298,12 +298,23 @@ class UserController extends PublicController {
         } else {
             $userId = $this->user['id'];
         }
+
+        $condition['not_pid'] = redisExist('HOME_ID') ? redisGet('HOME_ID') : NULL;
+        if (!$condition['not_pid']) {
+            $condition['not_pid'] = (new UrlPermModel())->getMenuIdByName('首页');
+            redisSet('HOME_ID', $condition['not_pid']);
+        }
         if (!empty($condition['type']) && $condition['type'] === 'CHILD' && empty($condition['parent_id'])) {
             $data = (new UrlPermModel())->getDefault();
-        } elseif ($condition['parent_id'] == (new UrlPermModel())->getMenuIdByName('首页')) {
+        } elseif ($condition['parent_id'] == $condition['not_pid']) {
             $data = (new UrlPermModel())->getDefault();
         } else {
+
             $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
+            if ($condition['only_one_level'] == 'Y') {
+                $home = (new UrlPermModel())->getHome();
+                $data = array_merge($home, $data);
+            }
         }
         if (!empty($data)) {
             $datajson['code'] = 1;
