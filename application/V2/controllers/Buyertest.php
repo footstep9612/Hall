@@ -236,4 +236,22 @@ class BuyertestController extends PublicController
         }
         echo $count;
     }
+    //2-buyer_code
+    public function syncAgentAction(){
+        $start=time();
+        set_time_limit(0);
+        $sql="SELECT id,buyer_id,count(buyer_id),created_at,created_by FROM erui_buyer.buyer_agent GROUP BY buyer_id";
+//        $sql.=" GROUP BY buyer_code  HAVING hh BETWEEN 2 and 10  ORDER BY id desc";
+        $model=new BuyerModel();
+        $info=$model->query($sql);
+        $count=0;
+        foreach($info as $k => $v){
+            $res=$model->where(array('id'=>$v['buyer_id']))
+                ->save(array('agent_at'=>$v['created_at'],'agent_name'=>$v['created_by']));
+            $count+=$res;
+        }
+        $time=time()-$start;
+        echo $count.':个,time:'.$time;
+    }
+
 }

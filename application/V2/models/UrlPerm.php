@@ -92,7 +92,7 @@ class UrlPermModel extends PublicModel {
             $flag = $this->where($where)
                     ->delete();
             if (!$flag) {
-                redisDel('HOME_DEFAULT');
+                $this->_delCache();
             }
             return $flag;
         } else {
@@ -119,7 +119,7 @@ class UrlPermModel extends PublicModel {
 
             $flag = $this->where($where)->save($arr);
             if (!$flag) {
-                redisDel('HOME_DEFAULT');
+                $this->_delCache();
             }
             return $flag;
         } else {
@@ -152,7 +152,8 @@ class UrlPermModel extends PublicModel {
             $this->rollback();
             return false;
         }
-        redisDel('HOME_DEFAULT');
+
+        $this->_delCache();
         $this->commit();
         return $insertId;
     }
@@ -196,7 +197,7 @@ class UrlPermModel extends PublicModel {
                 $parent_id = $this->getMenuIdByName('首页');
                 redisSet('HOME_ID', $parent_id);
             }
-            $data = $this->getlist(['parent_id' => $parent_id], null);
+            $data = $this->getMenu(['parent_id' => $parent_id], null);
             $res = $this->getUrlpermChildren($data);
 
             redisSet('HOME_DEFAULT', json_encode($res));
@@ -214,11 +215,24 @@ class UrlPermModel extends PublicModel {
                 $parent_id = $this->getMenuIdByName('首页');
                 redisSet('HOME_ID', $parent_id);
             }
-            $data = $this->getlist(['id' => $parent_id], null);
-            $data[0]['func_perm_id'] = $data[0]['id'];
+            $data = $this->getMenu(['id' => $parent_id]);
+
             redisSet('HOME', json_encode($data));
             return $data;
         }
+    }
+
+    public function getMenu($data, $order = 'sort') {
+        return $this->field('`id` as func_perm_id,`fn`,`parent_id`,`url`,top_parent_id,source,`fn_en`,`fn_es`,`fn_ru`')
+                        ->where($data)
+                        ->order($order)
+                        ->select();
+    }
+
+    private function _delCache() {
+        redisDel('HOME_DEFAULT');
+        redisDel('HOME_ID');
+        redisDel('HOME');
     }
 
     function getUrlpermChildren($list) {
@@ -226,26 +240,26 @@ class UrlPermModel extends PublicModel {
         if (!empty($list)) {
             $parent_ids = [];
             foreach ($list as $item) {
-                $parent_ids[] = $item['id'];
+                $parent_ids[] = $item['func_perm_id'];
             }
 
-            $data = $this->getlist(['parent_id' => ['in', $parent_ids]], null);
+            $data = $this->getMenu(['parent_id' => ['in', $parent_ids]]);
             $ret = [];
             if (!empty($data)) {
                 $children_parent_ids = [];
                 foreach ($data as $child) {
-                    $children_parent_ids = $child['id'];
+                    $children_parent_ids = $child['func_perm_id'];
                 }
 
                 if (!empty($children_parent_ids)) {
                     $ret_children = [];
-                    $childrens = $this->getlist(['parent_id' => ['in', $children_parent_ids]], null);
+                    $childrens = $this->getMenu(['parent_id' => ['in', $children_parent_ids]]);
                     foreach ($childrens as $children) {
                         $ret_children[$children['parent_id']][] = $children;
                     }
                     foreach ($data as $key => $item) {
-                        if (!empty($ret_children[$item['id']])) {
-                            $data[$key]['children'] = $ret_children[$item['id']];
+                        if (!empty($ret_children[$item['func_perm_id']])) {
+                            $data[$key]['children'] = $ret_children[$item['func_perm_id']];
                         }
                     }
                 }
@@ -253,8 +267,8 @@ class UrlPermModel extends PublicModel {
                     $ret[$child['parent_id']][] = $child;
                 }
                 foreach ($list as $key => $item) {
-                    if (!empty($ret[$item['id']])) {
-                        $list[$key]['children'] = $ret[$item['id']];
+                    if (!empty($ret[$item['func_perm_id']])) {
+                        $list[$key]['children'] = $ret[$item['func_perm_id']];
                     }
                 }
             }
