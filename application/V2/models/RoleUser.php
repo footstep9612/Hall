@@ -305,7 +305,7 @@ class RoleUserModel extends PublicModel {
                 $where['fp.parent_id'] = 0;
             }
             if (!empty($not_pid)) {
-                $where['fp.parent_id'] = ['neq', $not_pid];
+                $where[] = 'fp.parent_id <>' . $not_pid;
             }
             if ($source) {
                 $where['fp.source'] = $source;
