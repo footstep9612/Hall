@@ -309,7 +309,12 @@ class UserController extends PublicController {
         } elseif ($condition['parent_id'] == $condition['not_pid']) {
             $data = (new UrlPermModel())->getDefault();
         } else {
+
             $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
+            if ($condition['only_one_level'] == 'Y') {
+                $home = (new UrlPermModel())->getHome();
+                $data = array_merge([$home], $data);
+            }
         }
         if (!empty($data)) {
             $datajson['code'] = 1;
