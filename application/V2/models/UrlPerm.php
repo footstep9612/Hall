@@ -240,7 +240,7 @@ class UrlPermModel extends PublicModel {
         if (!empty($list)) {
             $parent_ids = [];
             foreach ($list as $item) {
-                $parent_ids[] = $item['id'];
+                $parent_ids[] = $item['func_perm_id'];
             }
 
             $data = $this->getMenu(['parent_id' => ['in', $parent_ids]]);
@@ -248,7 +248,7 @@ class UrlPermModel extends PublicModel {
             if (!empty($data)) {
                 $children_parent_ids = [];
                 foreach ($data as $child) {
-                    $children_parent_ids = $child['id'];
+                    $children_parent_ids = $child['func_perm_id'];
                 }
 
                 if (!empty($children_parent_ids)) {
@@ -258,8 +258,8 @@ class UrlPermModel extends PublicModel {
                         $ret_children[$children['parent_id']][] = $children;
                     }
                     foreach ($data as $key => $item) {
-                        if (!empty($ret_children[$item['id']])) {
-                            $data[$key]['children'] = $ret_children[$item['id']];
+                        if (!empty($ret_children[$item['func_perm_id']])) {
+                            $data[$key]['children'] = $ret_children[$item['func_perm_id']];
                         }
                     }
                 }
@@ -267,8 +267,8 @@ class UrlPermModel extends PublicModel {
                     $ret[$child['parent_id']][] = $child;
                 }
                 foreach ($list as $key => $item) {
-                    if (!empty($ret[$item['id']])) {
-                        $list[$key]['children'] = $ret[$item['id']];
+                    if (!empty($ret[$item['func_perm_id']])) {
+                        $list[$key]['children'] = $ret[$item['func_perm_id']];
                     }
                 }
             }
