@@ -232,12 +232,12 @@ class BrandModel extends PublicModel {
         $flag = $this->where($where)
                 ->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
 
-        if ($flag) {
-
-            return true;
-        } else {
+        if ($flag === false) {
 
             return false;
+        } else {
+
+            return true;
         }
     }
 

@@ -232,8 +232,11 @@ class LogisticsController extends PublicController {
                     !isDecimal($portSurchargeItem['price']) ? jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_PRICE')) : null;
 
                     $portSurchargeItem['cur_bn'] == '' ? jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_CUR')) : null;
-
-                    $portSurchargeData = $this->quoteLogiCostModel->create($portSurchargeItem);
+                    $portSurchargeData = [];
+                    $portSurchargeData['unit'] = $portSurchargeItem['unit'];
+                    $portSurchargeData['qty'] = $portSurchargeItem['qty'];
+                    $portSurchargeData['price'] = $portSurchargeItem['price'];
+                    $portSurchargeData['cur_bn'] = $portSurchargeItem['cur_bn'];
                     $portSurchargeData['inquiry_id'] = $quote['inquiry_id'];
                     $portSurchargeData['quote_id'] = $quote['id'];
                     $portSurchargeData['type'] = 'port_surcharge';
@@ -249,15 +252,15 @@ class LogisticsController extends PublicController {
                     foreach ($data['inter_shipping_items'] as $interShippingItem) {
 
                         $interShippingItem['unit'] == '' ? jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_UNIT')) : null;
-
                         !isDecimal($interShippingItem['qty']) ? jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_QTY')) : null;
-
                         !isDecimal($interShippingItem['price']) ? jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_PRICE')) : null;
-
-
                         $interShippingItem['cur_bn'] == '' ? jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_CUR')) : null;
+                        $interShippingData = [];
+                        $interShippingData['unit'] = $interShippingItem['unit'];
+                        $interShippingData['qty'] = $interShippingItem['qty'];
+                        $interShippingData['price'] = $interShippingItem['price'];
+                        $interShippingData['cur_bn'] = $interShippingItem['cur_bn'];
 
-                        $interShippingData = $this->quoteLogiCostModel->create($interShippingItem);
                         $interShippingData['inquiry_id'] = $quote['inquiry_id'];
                         $interShippingData['quote_id'] = $quote['id'];
                         $interShippingData['type'] = 'inter_shipping';
