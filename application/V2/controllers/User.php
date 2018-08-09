@@ -301,7 +301,7 @@ class UserController extends PublicController {
 
         $condition['not_pid'] = redisExist('HOME_ID') ? redisGet('HOME_ID') : NULL;
         if (!$condition['not_pid']) {
-            $condition['not_pid'] = $this->getMenuIdByName('首页');
+            $condition['not_pid'] = (new UrlPermModel())->getMenuIdByName('首页');
             redisSet('HOME_ID', $condition['not_pid']);
         }
         if (!empty($condition['type']) && $condition['type'] === 'CHILD' && empty($condition['parent_id'])) {
