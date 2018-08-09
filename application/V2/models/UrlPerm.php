@@ -176,4 +176,55 @@ class UrlPermModel extends PublicModel {
         return $this->where(['fn' => $name, 'parent_id' => '0'])->getField('id') ?: 0;
     }
 
+    public function getDefault() {
+        $parent_id = $this->getMenuIdByName('首页');
+
+        $data = $this->getlist(['parent_id' => $parent_id], null);
+        $res = $this->getUrlpermChildren($data);
+        return $res;
+    }
+
+    function getUrlpermChildren($list) {
+
+        if (!empty($list)) {
+            $parent_ids = [];
+            foreach ($list as $item) {
+                $parent_ids[] = $item['id'];
+            }
+
+            $data = $this->getlist(['parent_id' => ['in', $parent_ids]], null);
+            $ret = [];
+            if (!empty($data)) {
+                $children_parent_ids = [];
+                foreach ($data as $child) {
+                    $children_parent_ids = $child['id'];
+                }
+
+                if (!empty($children_parent_ids)) {
+                    $ret_children = [];
+                    $childrens = $this->getlist(['parent_id' => ['in', $children_parent_ids]], null);
+                    foreach ($childrens as $children) {
+                        $ret_children[$children['parent_id']][] = $children;
+                    }
+                    foreach ($data as $key => $item) {
+                        if (!empty($ret_children[$item['id']])) {
+                            $data[$key]['children'] = $ret_children[$item['id']];
+                        }
+                    }
+                }
+                foreach ($data as $child) {
+                    $ret[$child['parent_id']][] = $child;
+                }
+                foreach ($list as $key => $item) {
+                    if (!empty($ret[$item['id']])) {
+                        $list[$key]['children'] = $ret[$item['id']];
+                    }
+                }
+            }
+            return $list;
+        } else {
+            return $list;
+        }
+    }
+
 }

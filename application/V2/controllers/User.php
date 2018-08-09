@@ -24,7 +24,7 @@ class UserController extends PublicController {
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        $data['deleted_flag']='N';
+        $data['deleted_flag'] = 'N';
         if (!empty($data['deleted_flag'])) {
             $where['deleted_flag'] = $data['deleted_flag'];
         }
@@ -89,13 +89,13 @@ class UserController extends PublicController {
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
         $count = $user_modle->getcount($where);
-        $status_count=$user_modle->getStatusCount($where);
+        $status_count = $user_modle->getStatusCount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
             if ($count) {
                 $datajson['count'] = $count[0]['num'];
-                $datajson['disabled_count'] = $status_count['disabled_num']?$status_count['disabled_num']:0;
-                $datajson['normal_count'] = $status_count['normal_num']?$status_count['normal_num']:0;
+                $datajson['disabled_count'] = $status_count['disabled_num'] ? $status_count['disabled_num'] : 0;
+                $datajson['normal_count'] = $status_count['normal_num'] ? $status_count['normal_num'] : 0;
             } else {
                 $datajson['count'] = 0;
             }
@@ -107,6 +107,7 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
     public function crmlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang'] = $this->lang;
@@ -298,9 +299,12 @@ class UserController extends PublicController {
             $userId = $this->user['id'];
         }
         if (!empty($condition['type']) && $condition['type'] === 'CHILD' && empty($condition['parent_id'])) {
-            $condition['parent_id'] = (new UrlPermModel())->getMenuIdByName('首页');
+            $data = (new UrlPermModel())->getDefault();
+        } elseif ($condition['parent_id'] == (new UrlPermModel())->getMenuIdByName('首页')) {
+            $data = (new UrlPermModel())->getDefault();
+        } else {
+            $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
         }
-        $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
