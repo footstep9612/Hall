@@ -90,6 +90,10 @@ class Rfq_CheckLogModel extends PublicModel {
     static public function AddQuoteToSubmitLog($inquiry_id, $user) {
         try {
             $log = self::Instance()->field('out_at,out_node')->where(['inquiry_id' => $inquiry_id])->order('created_at desc')->find();
+            if ($log['out_node'] == 'MARKET_APPROVING') {
+                return false;
+            }
+
             $data = [
                 'inquiry_id' => $inquiry_id,
                 'action' => 'CREATE',
