@@ -17,8 +17,8 @@ class UrlPermModel extends PublicModel {
     protected $tableName = 'func_perm';
     Protected $autoCheckFields = true;
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     /**
@@ -89,8 +89,12 @@ class UrlPermModel extends PublicModel {
     public function delete_data($id = '') {
         $where['id'] = $id;
         if (!empty($where['id'])) {
-            return $this->where($where)
-                            ->delete();
+            $flag = $this->where($where)
+                    ->delete();
+            if (!$flag) {
+                redisDel('HOME_DEFAULT');
+            }
+            return $flag;
         } else {
             return false;
         }
@@ -112,7 +116,12 @@ class UrlPermModel extends PublicModel {
             $arr['top_parent_id'] = $this->getOneLevelMenuId($data['id']);
         }
         if (!empty($where)) {
-            return $this->where($where)->save($arr);
+
+            $flag = $this->where($where)->save($arr);
+            if (!$flag) {
+                redisDel('HOME_DEFAULT');
+            }
+            return $flag;
         } else {
             return false;
         }
@@ -143,6 +152,7 @@ class UrlPermModel extends PublicModel {
             $this->rollback();
             return false;
         }
+        redisDel('HOME_DEFAULT');
         $this->commit();
         return $insertId;
     }
@@ -177,11 +187,18 @@ class UrlPermModel extends PublicModel {
     }
 
     public function getDefault() {
-        $parent_id = $this->getMenuIdByName('首页');
+        if (redisExist('HOME_DEFAULT')) {
 
-        $data = $this->getlist(['parent_id' => $parent_id], null);
-        $res = $this->getUrlpermChildren($data);
-        return $res;
+            return json_encode(redisGet('HOME_DEFAULT'), true);
+        } else {
+            $parent_id = $this->getMenuIdByName('首页');
+
+            $data = $this->getlist(['parent_id' => $parent_id], null);
+            $res = $this->getUrlpermChildren($data);
+
+            redisSet('HOME_DEFAULT', json_encode($res));
+            return $res;
+        }
     }
 
     function getUrlpermChildren($list) {
