@@ -223,7 +223,7 @@ class UrlPermModel extends PublicModel {
     }
 
     public function getMenu($data, $order = 'sort') {
-        return $this->field('`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`')
+        return $this->field('`id` as func_perm_id,`fn`,`parent_id`,`url`,top_parent_id,source,`fn_en`,`fn_es`,`fn_ru`')
                         ->where($data)
                         ->order($order)
                         ->select();
