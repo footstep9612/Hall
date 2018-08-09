@@ -1230,6 +1230,8 @@ class BuyerModel extends PublicModel {
             $data['checked_by'] = $create['created_by'];
             $data['created_at'] = $time;
             $data['checked_at'] = $time;
+            $data['agent_at'] = $time;    //后台分配经办人时间
+            $data['agent_name'] = $create['created_by'];    //后台分配操作人员
         }
         $data['status'] = 'APPROVED';  //APPROVING
 //        $datajson = $this->create($data);
