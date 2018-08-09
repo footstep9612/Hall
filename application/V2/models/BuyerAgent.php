@@ -568,7 +568,7 @@ class BuyerAgentModel extends PublicModel {
         $sql.=" left join  erui_sys.employee employee";
         $sql.=" on agent.agent_id=employee.id and employee.deleted_flag='N'";
 
-        $sql.=" WHERE agent.buyer_id=$buyer_id";
+        $sql.=" WHERE agent.buyer_id=$buyer_id and agent.deleted_flag='N'";
         $sql.=" order by agent.id";
 
 
