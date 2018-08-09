@@ -215,7 +215,7 @@ class UrlPermModel extends PublicModel {
                 redisSet('HOME_ID', $parent_id);
             }
             $data = $this->getlist(['id' => $parent_id], null);
-            $data['func_perm_id'] = $data['id'];
+            $data[0]['func_perm_id'] = $data['id'];
             redisSet('HOME', json_encode($data));
             return $data;
         }
