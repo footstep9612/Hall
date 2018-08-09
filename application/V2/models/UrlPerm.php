@@ -92,7 +92,7 @@ class UrlPermModel extends PublicModel {
             $flag = $this->where($where)
                     ->delete();
             if (!$flag) {
-                redisDel('HOME_DEFAULT');
+                $this->_delCache();
             }
             return $flag;
         } else {
@@ -119,7 +119,7 @@ class UrlPermModel extends PublicModel {
 
             $flag = $this->where($where)->save($arr);
             if (!$flag) {
-                redisDel('HOME_DEFAULT');
+                $this->_delCache();
             }
             return $flag;
         } else {
@@ -152,7 +152,8 @@ class UrlPermModel extends PublicModel {
             $this->rollback();
             return false;
         }
-        redisDel('HOME_DEFAULT');
+
+        $this->_delCache();
         $this->commit();
         return $insertId;
     }
@@ -214,11 +215,24 @@ class UrlPermModel extends PublicModel {
                 $parent_id = $this->getMenuIdByName('首页');
                 redisSet('HOME_ID', $parent_id);
             }
-            $data = $this->getlist(['id' => $parent_id], null);
-            $data[0]['func_perm_id'] = $data[0]['id'];
+            $data = $this->getMenu(['id' => $parent_id]);
+
             redisSet('HOME', json_encode($data));
             return $data;
         }
+    }
+
+    public function getMenu($data, $order = 'sort') {
+        return $this->field('`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`')
+                        ->where($data)
+                        ->order($order)
+                        ->select();
+    }
+
+    private function _delCache() {
+        redisDel('HOME_DEFAULT');
+        redisDel('HOME_ID');
+        redisDel('HOME');
     }
 
     function getUrlpermChildren($list) {
@@ -229,7 +243,7 @@ class UrlPermModel extends PublicModel {
                 $parent_ids[] = $item['id'];
             }
 
-            $data = $this->getlist(['parent_id' => ['in', $parent_ids]], null);
+            $data = $this->getMenu(['parent_id' => ['in', $parent_ids]]);
             $ret = [];
             if (!empty($data)) {
                 $children_parent_ids = [];
@@ -239,7 +253,7 @@ class UrlPermModel extends PublicModel {
 
                 if (!empty($children_parent_ids)) {
                     $ret_children = [];
-                    $childrens = $this->getlist(['parent_id' => ['in', $children_parent_ids]], null);
+                    $childrens = $this->getMenu(['parent_id' => ['in', $children_parent_ids]]);
                     foreach ($childrens as $children) {
                         $ret_children[$children['parent_id']][] = $children;
                     }
