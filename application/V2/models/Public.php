@@ -327,4 +327,12 @@ class PublicModel extends Model {
         }
     }
 
+    public function SetTrimData($data) {
+
+        foreach ($data as $key => $item) {
+            $data[$key] = trim($item);
+        }
+        return $data;
+    }
+
 }
