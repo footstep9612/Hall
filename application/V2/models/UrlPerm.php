@@ -197,7 +197,7 @@ class UrlPermModel extends PublicModel {
                 $parent_id = $this->getMenuIdByName('首页');
                 redisSet('HOME_ID', $parent_id);
             }
-            $data = $this->getlist(['parent_id' => $parent_id], null);
+            $data = $this->getMenu(['parent_id' => $parent_id], null);
             $res = $this->getUrlpermChildren($data);
 
             redisSet('HOME_DEFAULT', json_encode($res));
