@@ -93,9 +93,16 @@ class UserController extends PublicController {
         if (!empty($data)) {
             $datajson['code'] = 1;
             if ($count) {
-                $datajson['count'] = $count[0]['num'];
-                $datajson['disabled_count'] = $status_count['disabled_num'] ? $status_count['disabled_num'] : 0;
-                $datajson['normal_count'] = $status_count['normal_num'] ? $status_count['normal_num'] : 0;
+                $datajson['total_count'] = $count[0]['num'];
+                $datajson['disabled_count'] = $status_count['disabled_num']?$status_count['disabled_num']:0;
+                $datajson['normal_count'] = $status_count['normal_num']?$status_count['normal_num']:0;
+                if($where['status']=='DISABLED'){
+                    $datajson['count'] = $datajson['disabled_count'];
+                }elseif($where['status']=='NORMAL'){
+                    $datajson['count'] = $datajson['normal_count'];
+                }else{
+                    $datajson['count'] = $datajson['total_count'];
+                }
             } else {
                 $datajson['count'] = 0;
             }
