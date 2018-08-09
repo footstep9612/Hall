@@ -324,10 +324,10 @@ class LoginController extends PublicController {
         }
         if (isset($data['company_name']) && !empty($data['company_name'])) {
             $arr['name'] = trim($data['company_name']);
-            $checkname = $model->where("name='" . $arr['name'] . "' AND deleted_flag='N'")->find();
+           /* $checkname = $model->where("name='" . $arr['name'] . "' AND deleted_flag='N'")->find();
             if ($checkname) {
                 jsonReturn('', -125, ShopMsg::getMessage('-125', $lang));
-            }
+            }*/
         } else {
             jsonReturn(null, -118, ShopMsg::getMessage('-118', $lang));
         }
