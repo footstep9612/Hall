@@ -462,6 +462,24 @@ class InquiryController extends PublicController {
                     case 'LOGI_QUOTING' :
                         $nowAgentId = $inquiry['logi_agent_id'];
                         break;
+                    case 'REJECT_QUOTING' :
+                        $nowAgentId = $inquiry['quote_id'];
+                        break;
+                    case 'DRAFT' :
+                        $nowAgentId = $inquiry['agent_id'];
+                        break;
+                    case 'REJECT_MARKET' :
+                        $nowAgentId = $inquiry['agent_id'];
+                        break;
+                    case 'MARKET_CONFIRMING' :
+                        $nowAgentId = $inquiry['agent_id'];
+                        break;
+                    case 'QUOTE_SENT' :
+                        $nowAgentId = $inquiry['agent_id'];
+                        break;
+                    case 'INQUIRY_CLOSE' :
+                        $nowAgentId = $inquiry['agent_id'];
+                        break;
                     case 'LOGI_APPROVING' :
                         $nowAgentId = $inquiry['logi_check_id'];
                         break;
