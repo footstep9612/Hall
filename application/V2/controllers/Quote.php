@@ -410,13 +410,30 @@ class QuoteController extends PublicController {
         $this->jsonReturn(true);
     }
 
+    public function RecalculationAction() {
+        $condition = $this->put_data;
+        if (!empty($condition['inquiry_id'])) {
+            $this->inquiryModel->startTrans();
+            $result = $this->quoteModel->GeneralInfo(['inquiry_id' => $condition['inquiry_id']]);
+            $this->rollback($this->inquiryModel, null, $result);
+            $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
+            $flag2 = $quote_logi_fee_Model->submit($condition['inquiry_id']);
+            $this->rollback($this->inquiryModel, $flag2);
+            $FinalQuoteModel = new Rfq_FinalQuoteModel();
+            $res2 = $FinalQuoteModel->submit($condition['inquiry_id']);
+            $this->rollback($this->inquiryModel, $res2);
+            $this->inquiryModel->commit();
+            $this->jsonReturn($res2);
+        } else {
+            $this->jsonReturn(false);
+        }
+    }
+
     /**
      * 确认报价(审核人)
      * @author mmt、liujf
      */
     public function quotetosubmitAction() {
-
-        error_reporting(E_ALL);
         $request = $this->validateRequests('inquiry_id');
 
         $condition = ['inquiry_id' => $request['inquiry_id']];
