@@ -56,6 +56,8 @@ class TodoController extends PublicController {
                     $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
                     $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
                     $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\') AND org_id in(' . implode(',', $org_ids) . ')))';
+                } else {
+                    $sql_inquiry .= ' AND `now_agent_id`=\'' . $this->user['id'] . '\'';
                 }
             } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
 
@@ -68,6 +70,8 @@ class TodoController extends PublicController {
                             . 'AND org_id in(' . implode(',', $org_ids) . ')'
                             . ' AND country_bn in(' . $country_bns . ')'
                             . '))';
+                } else {
+                    $sql_inquiry .= ' AND `now_agent_id`=\'' . $this->user['id'] . '\'';
                 }
             } else {
                 $sql_inquiry .= ' AND `now_agent_id`=\'' . $this->user['id'] . '\'';
@@ -104,6 +108,8 @@ class TodoController extends PublicController {
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
+                } else {
+                    $where_inquiry['now_agent_id'] = $this->user['id'];
                 }
             } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
                 if ($this->user['group_id']) {
@@ -120,8 +126,11 @@ class TodoController extends PublicController {
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
+                } else {
+                    $where_inquiry['now_agent_id'] = $this->user['id'];
                 }
             } else {
+
                 $where_inquiry['now_agent_id'] = $this->user['id'];
             }
             $list = $inquiry_model->where($where_inquiry)
