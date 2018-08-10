@@ -72,8 +72,9 @@ class GroupUserModel extends PublicModel {
         $sql = 'SELECT org.`id`,`parent_id`,`org`,`name`,`name_en`,`remarks`,`status`,`sort`,`show_name`,`org_node`';
         $sql .= ' FROM org ';
         $sql .= ' LEFT JOIN org_member  ON org.`id` = org_member.`org_id`';
+        $sql .= '  where org.deleted_flag=\'N\'';
         if (!empty($data['user_id'])) {
-            $sql .= ' WHERE org_member.`employee_id` = ' . $data['user_id'];
+            $sql .= ' and org_member.`employee_id` = ' . $data['user_id'];
         }
         if (!empty($limit)) {
             $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
