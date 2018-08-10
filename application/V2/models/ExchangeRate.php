@@ -288,13 +288,14 @@ class ExchangeRateModel extends PublicModel {
 
                     return round(1 / $exchangeRate, 16);
                 } else {
+                    jsonReturn(['code' => '-1', 'message' => '汇率不存在!']);
                     $error = '汇率不存在!';
                     return false;
                 }
             }
             return $exchangeRate;
         } else {
-            $error = '持有币种不能为空!';
+            jsonReturn(['code' => '-1', 'message' => '汇率不存在!']);
             return false;
         }
     }

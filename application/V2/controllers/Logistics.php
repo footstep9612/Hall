@@ -11,6 +11,7 @@ class LogisticsController extends PublicController {
 
     public function init() {
         parent::init();
+
         $this->put_data = dataTrim($this->put_data);
 
         $this->inquiryModel = new InquiryModel();
@@ -1179,9 +1180,9 @@ class LogisticsController extends PublicController {
                 return 1;
             }
             $exchangeRateModel = new ExchangeRateModel();
-            $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
+            $exchangeRate = $exchangeRateModel->getRate($holdCur, $exchangeCur);
 
-            return $exchangeRate['rate'];
+            return $exchangeRate;
         } else {
             return false;
         }
