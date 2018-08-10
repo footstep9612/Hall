@@ -373,7 +373,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
-        $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_APPROVING\' group by inquiry_id) as la_time,'; //物流报出日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
         $field .= 'i.created_at,it.category,qt.reason_for_no_quote,i.id as inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
@@ -624,7 +624,21 @@ class SupplierInquiryModel extends PublicModel {
 
     /**
      * @desc 设置项目澄清时间
-     *
+     * BIZ_APPROVING
+      BIZ_DISPATCHING
+      BIZ_QUOTING
+      CC_DISPATCHING
+      LOGI_APPROVING
+      LOGI_DISPATCHING
+      LOGI_QUOTING
+      MARKET_APPROVING
+      MARKET_CONFIRMING
+      QUOTE_SENT
+      INQUIRY_CLOSED
+      INQUIRY_CONFIRM
+      REJECT_CLOSE
+      REJECT_MARKET
+      REJECT_QUOTING
      * @param array $list  询单列表信息
      * @author liujf
      * @time 2018-02-09
@@ -641,7 +655,9 @@ class SupplierInquiryModel extends PublicModel {
             'LOGI_QUOTING' => 'logi_quoting_clarification_time',
             'LOGI_APPROVING' => 'logi_approving_clarification_time',
             'BIZ_APPROVING' => 'biz_approving_clarification_time',
-            'MARKET_APPROVING' => 'market_approving_clarification_time'
+            'MARKET_APPROVING' => 'market_approving_clarification_time',
+            'REJECT_QUOTING' => 'biz_reject_clarification_time',
+            'REJECT_MARKET' => 'market_reject_clarification_time',
         ];
         $clarifyNode = array_keys($clarifyMapping);
 
@@ -723,7 +739,6 @@ class SupplierInquiryModel extends PublicModel {
                 }
             }
 
-
 // 总的项目澄清时间
             if ($item['clarification_time'] > 0) {
                 $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
@@ -740,7 +755,8 @@ class SupplierInquiryModel extends PublicModel {
                 foreach ($clarifyMapping as $v) {
                     $item[$v] = !empty($clarification[$item['inquiry_id']][$v]) ? $clarification[$item['inquiry_id']][$v] : '';
                 }
-
+                $item['biz_quoting_clarification_time'] += $item['biz_reject_clarification_time'];
+                $item['market_approving_clarification_time'] += $item['market_reject_clarification_time'];
                 $item['clarification_time'] = !empty($clarification[$item['inquiry_id']]['clarification_time']) ? $clarification[$item['inquiry_id']]['clarification_time'] : 0;
             } elseif (!empty($item['inquiry_id'])) {
                 foreach ($clarifyMapping as $v) {
@@ -772,6 +788,8 @@ class SupplierInquiryModel extends PublicModel {
             'LOGI_APPROVING' => 'logi_approving_quoted_time',
             'BIZ_APPROVING' => 'biz_approving_quoted_time',
             'MARKET_APPROVING' => 'market_approving_quoted_time',
+            'REJECT_QUOTING' => 'biz_reject_quoted_time',
+            'REJECT_MARKET' => 'market_reject_quoted_time',
         ];
         $quoteNode = array_keys($quoteMapping);
 
@@ -833,7 +851,7 @@ class SupplierInquiryModel extends PublicModel {
 // 物流报价用时
             $logiSpend = intval($quoteTime['logi_dispatching_quoted_time']) + intval($quoteTime['logi_quoting_quoted_time']) + intval($quoteTime['logi_approving_quoted_time']);
             $item['logi_quoted_time'] = number_format($logiSpend / 3600, 2);
-            $tmpDispatchingSpend = intval($quoteTime['biz_quoting_quoted_time']) + intval($quoteTime['biz_approving_quoted_time']) + intval($quoteTime['market_approving_quoted_time']);
+            $tmpDispatchingSpend = intval($quoteTime['biz_reject_quoted_time'] + $quoteTime['market_reject_quoted_time'] + $quoteTime['biz_quoting_quoted_time']) + intval($quoteTime['biz_approving_quoted_time']) + intval($quoteTime['market_approving_quoted_time']);
             if ($real_items[$inquiry_id]['org_is_erui'] == 'Y') {
 // 易瑞商务技术报价用时
                 $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend;

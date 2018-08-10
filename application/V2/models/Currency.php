@@ -82,6 +82,9 @@ class CurrencyModel extends PublicModel {
                             ->order('bn')->select();
             if ($result) {
 
+//                foreach ($result as $key => $item) {
+//                    $result[$key]['name'] = $item['bn'] . '_' . $item['name'];
+//                }
                 return $result;
             }
         } catch (Exception $e) {

@@ -656,11 +656,19 @@ class LogisticsController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $this->inquiryModel->startTrans();
 
-            $quoteId = $this->inquiryModel->where(['id' => $condition['inquiry_id']])->getField('quote_id');
-
+            $inquiry = $this->inquiryModel->field('quote_id,now_agent_id')->where(['id' => $condition['inquiry_id']])->getField('quote_id');
+            if (empty($inquiry)) {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage('询单不存在!');
+                $this->jsonReturn(false);
+            } elseif ($inquiry['now_agent_id'] != $this->user['id']) {
+                $this->setCode(MSG::MSG_OTHER_ERR);
+                $this->setMessage(L('INQUIRY_STATUS_ERROR'));
+                $this->jsonReturn(false);
+            }
             $data = [
                 'id' => $condition['inquiry_id'],
-                'now_agent_id' => $quoteId,
+                'now_agent_id' => $inquiry['quote_id'],
                 'status' => 'BIZ_APPROVING',
                 'updated_by' => $this->user['id']
             ];
