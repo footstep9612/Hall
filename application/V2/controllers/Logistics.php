@@ -781,9 +781,9 @@ class LogisticsController extends PublicController {
 
         if (!empty($condition['inquiry_id'])) {
             $inquiry = $this->inquiryModel->where(['id' => $condition['inquiry_id']])->find();
-            if ($inquiry['status'] != 'REJECT_QUOTING') {
-                jsonReturn('', -101, L('INQUIRY_STATUS_ERROR'));
-            }
+//            if ($inquiry['status'] != 'REJECT_QUOTING') {
+//                jsonReturn('', -101, L('INQUIRY_STATUS_ERROR'));
+//            }
 
             $this->inquiryModel->startTrans();
             $inquiryData = [
@@ -930,7 +930,7 @@ class LogisticsController extends PublicController {
         $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360, 8);
         $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'] / 100;
 
-        $totalQuotePrice = $this->_getTotal_QuotePrice($trade, $tmpRate1, $tmpRate2, $data, $certificationFeeUSD, $inspectionFeeUSD, $landFreightUSD, $overlandInsuUSD, $portSurchargeUSD, $destClearanceFeeUSD, $destDeliveryFeeUSD);
+        $totalQuotePrice = $this->_getTotal_QuotePrice($trade, $tmpRate1, $tmpRate2, $data, $certificationFeeUSD, $inspectionFeeUSD, $landFreightUSD, $overlandInsuUSD, $portSurchargeUSD, $interShippingUSD, $destClearanceFeeUSD, $destDeliveryFeeUSD);
 
         $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
         $shippingInsuUSD = $shippingInsuFee['USD'];
@@ -1006,6 +1006,7 @@ class LogisticsController extends PublicController {
     }
 
     private function _getTotal_QuotePrice($trade, $tmpRate1, $tmpRate2, $data, $certificationFeeUSD, $inspectionFeeUSD, $landFreightUSD, $overlandInsuUSD, $portSurchargeUSD = 0, $interShippingUSD = 0, $destClearanceFeeUSD = 0, $destDeliveryFeeUSD = 0) {
+
         switch ($trade) {
             case 'EXW' :
                 $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
@@ -1023,8 +1024,8 @@ class LogisticsController extends PublicController {
                 break;
             case 'CIF' :
             case 'CIP' :
-
                 $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
+
                 $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
                 break;
             case 'DAP' :
