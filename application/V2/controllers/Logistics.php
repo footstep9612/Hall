@@ -656,14 +656,14 @@ class LogisticsController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $this->inquiryModel->startTrans();
 
-            $inquiry = $this->inquiryModel->field('quote_id,now_agent_id')->where(['id' => $condition['inquiry_id']])->getField('quote_id');
+            $inquiry = $this->inquiryModel->field('quote_id,now_agent_id')->where(['id' => $condition['inquiry_id']])->find();
             if (empty($inquiry)) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->setMessage('询单不存在!');
                 $this->jsonReturn(false);
             } elseif ($inquiry['now_agent_id'] != $this->user['id']) {
                 $this->setCode(MSG::MSG_OTHER_ERR);
-                $this->setMessage(L('INQUIRY_STATUS_ERROR'));
+                $this->setMessage('您没有审核权限!');
                 $this->jsonReturn(false);
             }
             $data = [
