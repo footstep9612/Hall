@@ -932,7 +932,7 @@ class LogisticsController extends PublicController {
 
         $totalQuotePrice = $this->_getTotal_QuotePrice($trade, $tmpRate1, $tmpRate2, $data, $certificationFeeUSD, $inspectionFeeUSD, $landFreightUSD, $overlandInsuUSD, $portSurchargeUSD, $interShippingUSD, $destClearanceFeeUSD, $destDeliveryFeeUSD);
 
-        $shippingInsuFee = $this->_getShippingInsuFee(round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8), $data['shipping_insu_rate']);
+        $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['shipping_insu_rate']);
         $shippingInsuUSD = $shippingInsuFee['USD'];
         $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period'] / 360, 8);
         $totalInsuFeeUSD = round($totalQuotePrice * $data['premium_rate'], 8);
