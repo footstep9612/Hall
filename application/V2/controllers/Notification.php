@@ -125,6 +125,8 @@ class NotificationController extends PublicController {
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
+                } else {
+                    $where_inquiry['now_agent_id'] = $this->user['id'];
                 }
             } elseif (in_array(InquiryModel::quoteIssueAuxiliaryRole, $role_nos) || in_array(InquiryModel::inquiryIssueAuxiliaryRole, $role_nos)) {
                 if ($this->user['group_id']) {
@@ -141,6 +143,8 @@ class NotificationController extends PublicController {
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
+                } else {
+                    $where_inquiry['now_agent_id'] = $this->user['id'];
                 }
             } else {
                 $where_inquiry['now_agent_id'] = $this->user['id'];
@@ -169,6 +173,8 @@ class NotificationController extends PublicController {
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
+                } else {
+                    $where_inquiry['now_agent_id'] = $this->user['id'];
                 }
             } elseif (in_array(InquiryModel::quoteIssueAuxiliaryRole, $role_nos) || in_array(InquiryModel::inquiryIssueAuxiliaryRole, $role_nos)) {
                 if ($this->user['group_id']) {
@@ -185,6 +191,8 @@ class NotificationController extends PublicController {
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
+                } else {
+                    $where_inquiry['now_agent_id'] = $this->user['id'];
                 }
             } else {
                 $where_inquiry['now_agent_id'] = $this->user['id'];
