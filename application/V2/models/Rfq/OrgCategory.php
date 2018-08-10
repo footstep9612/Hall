@@ -68,7 +68,7 @@ class Rfq_OrgCategoryModel extends PublicModel {
                     ->field('id,org_id,name')
                     ->order('id ASC')
                     ->select();
-            echo $this->_sql();
+
             redisHashSet('org_category', $redis_key, json_encode($list));
             return $list;
         } catch (Exception $ex) {
