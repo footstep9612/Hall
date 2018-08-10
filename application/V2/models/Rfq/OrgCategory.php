@@ -55,16 +55,20 @@ class Rfq_OrgCategoryModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition) {
+
         $where = $this->_getcondition($condition);
-        $redis_key = md5($where);
+
+        $redis_key = md5(http_build_query($where));
+
         if (redisHashExist('org_category', $redis_key)) {
             return json_decode(redisHashGet('org_category', $redis_key), true);
         }
         try {
             $list = $this->where($where)
                     ->field('id,org_id,name')
-                    ->order('id desc')
+                    ->order('id ASC')
                     ->select();
+            echo $this->_sql();
             redisHashSet('org_category', $redis_key, json_encode($list));
             return $list;
         } catch (Exception $ex) {
