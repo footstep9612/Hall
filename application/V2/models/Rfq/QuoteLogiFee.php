@@ -55,6 +55,7 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
 
             $overlandInsuFee = $this->_getOverlandInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['overland_insu_rate']);
             $quoteLogiFee['overland_insu'] = $overlandInsuFee['CNY'];
+
             $shippingInsuFee = $this->_getShippingInsuFee($quoteLogiFee['total_exw_price'], $quoteLogiFee['shipping_insu_rate']);
             $quoteLogiFee['shipping_insu'] = $shippingInsuFee['CNY'];
 
@@ -211,10 +212,10 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
 
         $tmpPrice = $totalExwPrice * $overlandInsuRate / 100;
 
-        $overlandInsuCNY = round($tmpPrice * $rate, 8);
+        $overlandInsuCNY = round($tmpPrice / $rate, 8);
 
         if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
-            $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
+            $overlandInsuUSD = round($rate > 0 ? 50 * $rate : 0, 8);
             $overlandInsuCNY = 50;
         } else if ($overlandInsuCNY >= 50) {
             $overlandInsuUSD = round($tmpPrice, 8);
@@ -240,11 +241,9 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         $rate = $this->_getRateUSD('CNY');
 
         $tmpPrice = $totalExwPrice * 1.1 * $shippingInsuRate / 100;
-
-        $shippingInsuCNY = round($tmpPrice * $rate, 8);
-
+        $shippingInsuCNY = round($tmpPrice / $rate, 8);
         if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
-            $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
+            $shippingInsuUSD = round($rate > 0 ? 50 * $rate : 0, 8);
             $shippingInsuCNY = 50;
         } else if ($shippingInsuCNY >= 50) {
             $shippingInsuUSD = round($tmpPrice, 8);
@@ -458,9 +457,12 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         $inspectionFeeUSD = round($data['inspection_fee'] * $this->_getRateUSD($data['inspection_fee_cur']), 8);
 
 
+
         $landFreightUSD = round($data['land_freight'] * $this->_getRateUSD($data['land_freight_cur']), 8);
+
         $overlandInsuFee = $this->_getOverlandInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
         $overlandInsuUSD = $overlandInsuFee['USD'];
+
         $portSurchargeUSD = round($data['port_surcharge'] * $this->_getRateUSD($data['port_surcharge_cur']), 8);
         $interShippingUSD = round($data['inter_shipping'] * $this->_getRateUSD($data['inter_shipping_cur']), 8);
         $destDeliveryFeeUSD = round($data['dest_delivery_fee'] * $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
@@ -498,7 +500,8 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
                 $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
         }
 
-        $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
+
+        $shippingInsuFee = $this->_getShippingInsuFee(round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8), $data['shipping_insu_rate']);
         $shippingInsuUSD = $shippingInsuFee['USD'];
         $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period'] / 360, 8);
         $totalInsuFeeUSD = round($totalQuotePrice * $data['premium_rate'], 8);
@@ -511,12 +514,10 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         // 物流费用合计
         $data['total_logi_fee'] = round($inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 8);
 
-
-
         $data['shipping_charge_cny'] = round(($data['inspection_fee_cur'] == 'CNY' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'CNY' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'CNY' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'CNY' ? $data['inter_shipping'] : 0) + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0), 8);
         $data['shipping_charge_ncny'] = round(($data['inspection_fee_cur'] == 'USD' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'USD' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'USD' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'USD' ? $data['inter_shipping'] : 0) + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0), 8);
 
-        $data['total_quote_price'] = $totalQuotePrice;
+        $data['total_quote_price'] = $totalQuotePrice + $shippingInsuUSD;
         $data['total_bank_fee'] = $totalBankFeeUSD;
         $data['total_insu_fee'] = $totalInsuFeeUSD;
 
