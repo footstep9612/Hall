@@ -1243,7 +1243,7 @@ class BuyerModel extends PublicModel {
             $create['is_group_crm']=false;
         }
         //
-        if(mb_substr($data['buyer_code'],3)=='KSD'){
+        if(mb_substr($data['buyer_code'],3)=='KSD' || mb_substr($data['buyer_code'],3)=='GAO'){
             $create['is_group_crm']=false;
         }
         if($create['is_group_crm'] == true){
