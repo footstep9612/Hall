@@ -299,7 +299,6 @@ class QuoteModel extends PublicModel {
 
         $inquiry = new InquiryModel();
         $quoteLogiFeeModel = new QuoteLogiFeeModel();
-        $quoteItemModel = new QuoteItemModel();
 
         $quoteItemLogiModel = new QuoteItemLogiModel();
         $this->startTrans();
@@ -348,23 +347,10 @@ class QuoteModel extends PublicModel {
                 }
             }
             //给物流报价单项形成记录
-            //$quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
-            $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
-            $quoteItemLogiModel = new QuoteItemLogiModel();
-            foreach ($quoteItemIds as $quoteItemId) {
-                if (empty($quoteItemId['reason_for_no_quote'])) {
-                    $flag = $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                                'inquiry_id' => $request['inquiry_id'],
-                                'quote_id' => $quoteInfo['id'],
-                                'quote_item_id' => $quoteItemId['id'],
-                                'created_at' => date('Y-m-d H:i:s'),
-                                'created_by' => $user['id']
-                    ]));
-                    if ($flag === false) {
-                        $this->rollback();
-                        return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
-                    }
-                }
+            $flag1 = $quoteItemLogiModel->UpdateItems($quoteInfo['id'], $request['inquiry_id'], $user);
+            if ($flag1 === false) {
+                $this->rollback();
+                return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
             }
         } else {
             $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
@@ -380,26 +366,10 @@ class QuoteModel extends PublicModel {
                 return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
             }
 
-
-            $quoteItemIds = $quoteItemModel->field('id,reason_for_no_quote')->where("quote_id=" . $quoteInfo['id'] . " and deleted_flag='N'")->select();
-            $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('quote_item_id', true);
-
-            foreach ($quoteItemIds as $quoteItemId) {
-                if (empty($quoteItemId['reason_for_no_quote'])) {
-                    if (!in_array($quoteItemId['id'], $logiIds)) {
-                        $flag = $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                                    'inquiry_id' => $request['inquiry_id'],
-                                    'quote_id' => $quoteInfo['id'],
-                                    'quote_item_id' => $quoteItemId['id'],
-                                    'created_at' => date('Y-m-d H:i:s'),
-                                    'created_by' => $user['id']
-                        ]));
-                        if ($flag === false) {
-                            $this->rollback();
-                            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
-                        }
-                    }
-                }
+            $flag1 = $quoteItemLogiModel->UpdateItems($quoteInfo['id'], $request['inquiry_id'], $user);
+            if ($flag1 === false) {
+                $this->rollback();
+                return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
             }
         }
         $flag = Rfq_CheckLogModel::addCheckLog($request['inquiry_id'], self::INQUIRY_LOGI_DISPATCHING, $user);
