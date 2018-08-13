@@ -213,8 +213,8 @@ class LogisticsController extends PublicController {
         $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
         $data['bank_interest'] = $quote['bank_interest'];
         $data['total_exw_price'] = $quote['total_exw_price'];
-//        $data['certification_fee'] = $quote['certification_fee'];
-//        $data['certification_fee_cur'] = $quote['certification_fee_cur'];
+
+
         $data['port_surcharge_cur'] = $data['inter_shipping_cur'] = 'USD';
 
         //计算并保存港杂费和国际运费数据
@@ -276,6 +276,7 @@ class LogisticsController extends PublicController {
         }
 
         $res_data = $this->calcuTotalLogiFee($data);
+        $this->quoteLogiFeeModel->rollback();
 
         // 去掉暂无的数据
         $res_data['logi_from_port'] = $res_data['logi_from_port'] == L('NOTHING') ? null : $res_data['logi_from_port'];
@@ -918,7 +919,7 @@ class LogisticsController extends PublicController {
         $data['inter_shipping'] = $data['port_surcharge'] = $data['land_freight'] = 0;
         $data['overland_insu_rate'] = $data['dest_clearance_fee'] = $data['dest_delivery_fee'] = 0;
         $data['dest_va_tax_rate'] = $data['dest_tariff_rate'] = $data['shipping_insu_rate'] = 0;
-        $data['certification_fee'] = $condition['certification_fee'] > 0 ? $condition['certification_fee'] : 0;
+        $data['certification_fee'] = 0;
         $data['inspection_fee'] = $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 
         $this->_HandelData($data, $trade, $condition);
