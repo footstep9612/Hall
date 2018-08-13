@@ -287,14 +287,7 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
         $data['bank_interest'] = $quote['bank_interest'];
         $data['total_exw_price'] = $quote['total_exw_price'];
-
-        if ($data['inspection_fee'] > 0) {
-            $data['certification_fee'] = 0;
-        } else {
-            $data['certification_fee'] = $quote['certification_fee'];
-        }
-
-
+        $data['certification_fee'] = $quote['certification_fee'];
         $data['certification_fee_cur'] = $quote['certification_fee_cur'];
 
 
@@ -414,7 +407,7 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         $data['dest_tariff_rate'] = 0;
         $data['dest_va_tax_rate'] = 0;
 
-        $data['certification_fee'] = 0;
+        $data['certification_fee'] = isset($condition['certification_fee']) && $condition['certification_fee'] > 0 ? $condition['certification_fee'] : 0;
         $data['inspection_fee'] = isset($condition['inspection_fee']) && $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 
         switch (true) {
