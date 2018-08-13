@@ -213,8 +213,8 @@ class LogisticsController extends PublicController {
         $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
         $data['bank_interest'] = $quote['bank_interest'];
         $data['total_exw_price'] = $quote['total_exw_price'];
-        $data['certification_fee'] = $quote['certification_fee'];
-        $data['certification_fee_cur'] = $quote['certification_fee_cur'];
+//        $data['certification_fee'] = $quote['certification_fee'];
+//        $data['certification_fee_cur'] = $quote['certification_fee_cur'];
         $data['port_surcharge_cur'] = $data['inter_shipping_cur'] = 'USD';
 
         //计算并保存港杂费和国际运费数据

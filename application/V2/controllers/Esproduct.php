@@ -447,6 +447,8 @@ class EsproductController extends PublicController {
         foreach ($list as $k => $product) {
             if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
                 $status_sku_count = $status_sku_counts[$product['spu']];
+                unset($status_sku_count['spu']);
+                $product['sku_count'] = array_sum($status_sku_count);
                 $list[$k]['sku_count'] = $product['sku_count'] . PHP_EOL . '(' .
                         ($status_sku_count['draft_count'] > 0 ? '   暂存:' . $status_sku_count['draft_count'] : '') .
                         ($status_sku_count['checking_count'] > 0 ? '   待审核:' . $status_sku_count['checking_count'] : '') .
